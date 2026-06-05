@@ -1,0 +1,425 @@
+f<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KodamiAcademy — La Arena del Saber</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--black:#0a0a0a;--deep:#111;--dark:#1a1a1a;--charcoal:#2a2a2a;--smoke:#3a3a3a;--ash:#888;--silver:#c0c0c0;--white:#f0f0f0;--craft:#c8a96e;--craft-light:#e8c87e;--blue:#4ab8ff;}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
+.cursor{position:fixed;width:12px;height:12px;background:var(--craft);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
+.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid var(--craft);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.6;}
+.hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.jpg');background-size:cover;background-position:center top;opacity:.55;}
+.hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,10,.3) 0%,rgba(10,10,10,.75) 55%,rgba(10,10,10,.98) 100%);}
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);border-bottom:1px solid rgba(200,169,110,.1);}
+.nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--craft);letter-spacing:3px;text-shadow:0 0 20px rgba(200,169,110,.5);}
+.nav-logo span{color:var(--white);}
+.nav-links{display:flex;gap:36px;list-style:none;}
+.nav-links a{color:var(--ash);text-decoration:none;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;transition:color .3s;font-weight:600;}
+.nav-links a:hover{color:var(--craft);}
+.hero{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;padding:0 60px;}
+.hero-content{max-width:680px;animation:fadeUp 1.2s ease forwards;opacity:0;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.hero-tag{display:inline-block;font-size:.68rem;letter-spacing:6px;text-transform:uppercase;color:var(--craft);border:1px solid rgba(200,169,110,.3);padding:6px 16px;margin-bottom:28px;}
+.hero-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2.2rem,5.5vw,4.5rem);line-height:1.05;color:var(--white);margin-bottom:8px;}
+.hero-title .accent{color:var(--craft);text-shadow:0 0 40px rgba(200,169,110,.45);}
+.hero-jp{font-family:'Noto Serif JP',serif;font-size:.9rem;color:var(--ash);letter-spacing:8px;margin-bottom:22px;}
+.hero-desc{font-size:1rem;color:var(--ash);line-height:1.8;max-width:480px;margin-bottom:42px;font-weight:300;}
+.hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
+.btn-primary{background:var(--craft);color:var(--black);border:none;padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn-primary::before{content:'';position:absolute;inset:0;background:var(--craft-light);transform:translateX(-100%);transition:transform .3s;}
+.btn-primary:hover::before{transform:translateX(0);}
+.btn-primary span{position:relative;z-index:1;}
+.btn-secondary{background:transparent;color:var(--craft);border:1px solid rgba(200,169,110,.4);padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn-secondary:hover{background:rgba(200,169,110,.1);}
+.stats-bar{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(200,169,110,.1);border-top:1px solid rgba(200,169,110,.1);border-bottom:1px solid rgba(200,169,110,.1);}
+.stat-item{background:rgba(10,10,10,.92);padding:22px 24px;text-align:center;}
+.stat-num{font-family:'Cinzel Decorative',serif;font-size:1.8rem;color:var(--craft);display:block;text-shadow:0 0 20px rgba(200,169,110,.3);}
+.stat-label{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--ash);margin-top:4px;display:block;}
+.divider{position:relative;z-index:2;display:flex;align-items:center;gap:20px;padding:0 60px;margin:24px 0;}
+.divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(200,169,110,.3),transparent);}
+.divider-symbol{color:var(--craft);font-size:1.1rem;}
+.materias-nav{position:relative;z-index:2;padding:0 60px 28px;}
+.materias-label{font-size:.63rem;letter-spacing:5px;color:var(--ash);text-transform:uppercase;margin-bottom:14px;}
+.materias-tabs{display:flex;flex-wrap:wrap;gap:8px;}
+.materia-tab{padding:10px 20px;border:1px solid rgba(255,255,255,.07);color:var(--ash);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .3s;background:rgba(255,255,255,.02);font-family:'Rajdhani',sans-serif;font-weight:600;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.materia-tab.active{border-color:var(--craft);color:var(--craft);background:rgba(200,169,110,.08);}
+.materia-tab.soon{opacity:.45;}
+.soon-badge{font-size:.53rem;background:rgba(255,255,255,.07);color:var(--ash);padding:2px 5px;margin-left:5px;letter-spacing:1px;}
+.search-section{position:relative;z-index:2;padding:10px 60px 28px;}
+.search-label{font-size:.63rem;letter-spacing:5px;color:var(--ash);text-transform:uppercase;margin-bottom:14px;}
+.search-container{display:flex;max-width:680px;}
+.search-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.2);border-right:none;color:var(--white);padding:13px 20px;font-family:'Rajdhani',sans-serif;font-size:.93rem;outline:none;transition:border-color .3s;clip-path:polygon(10px 0%,100% 0%,100% 100%,0% 100%,0% 10px);}
+.search-input:focus{border-color:rgba(200,169,110,.5);}
+.search-input::placeholder{color:var(--smoke);}
+.search-btn{background:var(--craft);border:none;padding:0 24px;color:var(--black);font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:background .3s;clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,0% 100%);}
+.search-btn:hover{background:var(--craft-light);}
+.section{position:relative;z-index:2;padding:36px 60px 60px;}
+.section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:28px;}
+.section-title{font-family:'Cinzel Decorative',serif;font-size:1.15rem;color:var(--white);letter-spacing:2px;}
+.section-jp{font-family:'Noto Serif JP',serif;font-size:.7rem;color:rgba(200,169,110,.4);letter-spacing:4px;}
+.section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(200,169,110,.3),transparent);}
+.category-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+.pill{padding:7px 17px;border:1px solid rgba(200,169,110,.14);color:var(--ash);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);background:transparent;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.pill:hover,.pill.active{border-color:var(--craft);color:var(--craft);background:rgba(200,169,110,.07);}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:16px;}
+.resource-card{background:rgba(17,17,17,.93);border:1px solid rgba(255,255,255,.05);position:relative;overflow:hidden;transition:transform .3s,border-color .3s;cursor:none;animation:fadeUp .6s ease forwards;opacity:0;}
+.resource-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--craft),transparent);transform:scaleX(0);transition:transform .4s;}
+.resource-card:hover{transform:translateY(-4px);border-color:rgba(200,169,110,.2);}
+.resource-card:hover::before{transform:scaleX(1);}
+.card-thumb{width:100%;height:145px;background:var(--dark);display:flex;align-items:center;justify-content:center;position:relative;}
+.card-icon{font-size:3rem;position:relative;z-index:1;filter:drop-shadow(0 0 16px rgba(200,169,110,.3));}
+.card-badge{position:absolute;top:10px;right:10px;font-size:.57rem;letter-spacing:2px;text-transform:uppercase;padding:3px 8px;font-weight:700;}
+.badge-web{background:rgba(0,200,100,.1);color:#00c864;border:1px solid rgba(0,200,100,.22);}
+.badge-apk{background:rgba(74,184,255,.1);color:#4ab8ff;border:1px solid rgba(74,184,255,.22);}
+.badge-zip{background:rgba(200,169,110,.1);color:var(--craft);border:1px solid rgba(200,169,110,.22);}
+.badge-pdf{background:rgba(255,80,80,.1);color:#ff5050;border:1px solid rgba(255,80,80,.22);}
+.badge-video{background:rgba(200,80,255,.1);color:#c850ff;border:1px solid rgba(200,80,255,.22);}
+.badge-audio{background:rgba(255,180,0,.1);color:#ffb400;border:1px solid rgba(255,180,0,.22);}
+.card-body{padding:16px;}
+.card-category{font-size:.6rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);margin-bottom:5px;}
+.card-title{font-family:'Rajdhani',sans-serif;font-size:1.05rem;font-weight:700;color:var(--white);margin-bottom:5px;line-height:1.3;}
+.card-desc{font-size:.78rem;color:var(--ash);line-height:1.6;margin-bottom:13px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,.05);}
+.card-level{display:flex;gap:3px;}
+.level-dot{width:5px;height:5px;border-radius:50%;background:var(--smoke);}
+.level-dot.active{background:var(--craft);}
+.card-btn{font-size:.66rem;letter-spacing:2px;text-transform:uppercase;color:var(--craft);border:1px solid rgba(200,169,110,.22);padding:5px 13px;background:transparent;cursor:none;transition:all .3s;font-family:'Rajdhani',sans-serif;font-weight:700;}
+.card-btn:hover{background:rgba(200,169,110,.1);}
+.coming-soon-panel{display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;text-align:center;}
+.coming-soon-panel.visible{display:flex;}
+.cs-icon{font-size:3.5rem;margin-bottom:20px;opacity:.55;}
+.cs-title{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--craft);margin-bottom:10px;letter-spacing:2px;}
+.cs-desc{font-size:.88rem;color:var(--ash);line-height:1.8;max-width:380px;}
+.cs-version{display:inline-block;margin-top:18px;font-size:.63rem;letter-spacing:4px;text-transform:uppercase;border:1px solid rgba(200,169,110,.18);color:rgba(200,169,110,.45);padding:5px 14px;}
+footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(200,169,110,.08);display:flex;align-items:center;justify-content:space-between;}
+.footer-logo{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--craft);opacity:.5;}
+.footer-text{font-size:.68rem;color:var(--smoke);letter-spacing:2px;}
+.mascot{position:fixed;bottom:26px;right:26px;z-index:200;display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+.mascot-bubble{background:rgba(14,14,14,.96);border:1px solid rgba(200,169,110,.28);padding:11px 15px;max-width:220px;font-size:.78rem;color:var(--silver);line-height:1.6;clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,10px 100%,0% calc(100% - 10px));animation:bubbleIn .4s ease forwards;}
+.mascot-bubble.hidden{display:none;}
+@keyframes bubbleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
+.mascot-wrapper{position:relative;cursor:none;}
+.mascot-img{width:82px;height:82px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 14px rgba(200,169,110,.5));animation:mascotFloat 3.2s ease-in-out infinite;}
+.mascot-img.kira-active{filter:drop-shadow(0 0 14px rgba(74,184,255,.6));animation:mascotFloat 3.2s ease-in-out infinite,mascotIn .5s ease forwards;}
+.mascot-img.tired{animation:mascotTired 1.2s ease-in-out infinite;}
+@keyframes mascotFloat{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-10px) rotate(2deg)}}
+@keyframes mascotTired{0%,100%{transform:translateY(0) rotate(-10deg)}50%{transform:translateY(3px) rotate(-7deg)}}
+@keyframes mascotIn{from{opacity:0;transform:translateX(60px)}to{opacity:1}}
+.mascot-ping{position:absolute;top:-2px;right:-2px;width:11px;height:11px;background:var(--craft);border-radius:50%;animation:ping 2s ease-in-out infinite;}
+.mascot-ping.blue{background:var(--blue);}
+@keyframes ping{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.4}}
+.chat-panel{position:fixed;bottom:118px;right:26px;width:325px;background:rgba(11,11,11,.97);border:1px solid rgba(200,169,110,.2);z-index:199;clip-path:polygon(0% 0%,calc(100% - 13px) 0%,100% 13px,100% 100%,13px 100%,0% calc(100% - 13px));display:none;flex-direction:column;max-height:430px;}
+.chat-panel.open{display:flex;animation:bubbleIn .3s ease forwards;}
+.chat-header{padding:11px 16px;border-bottom:1px solid rgba(200,169,110,.1);display:flex;align-items:center;justify-content:space-between;}
+.chat-header-info{display:flex;align-items:center;gap:9px;}
+.chat-avatar{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(200,169,110,.4));}
+.chat-header-title{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);font-weight:700;}
+.chat-header-sub{font-size:.58rem;color:var(--ash);letter-spacing:1px;}
+.chat-close{background:none;border:none;color:var(--ash);cursor:none;font-size:.88rem;}
+.chat-messages{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;}
+.msg{max-width:88%;padding:8px 12px;font-size:.78rem;line-height:1.6;color:var(--silver);}
+.msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:0 10px 10px 10px;align-self:flex-start;}
+.msg-ai.kira{background:rgba(74,184,255,.05);border-color:rgba(74,184,255,.12);}
+.msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px 0 10px 10px;align-self:flex-end;color:var(--white);}
+.msg-typing{display:flex;gap:4px;padding:10px 13px;align-items:center;}
+.typing-dot{width:5px;height:5px;border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite;}
+.typing-dot.gold{background:var(--craft);}
+.typing-dot.blue{background:var(--blue);}
+.typing-dot:nth-child(2){animation-delay:.2s;}
+.typing-dot:nth-child(3){animation-delay:.4s;}
+@keyframes typingBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
+.chat-input-area{padding:9px;border-top:1px solid rgba(200,169,110,.1);display:flex;gap:6px;}
+.chat-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);color:var(--white);padding:8px 12px;font-family:'Rajdhani',sans-serif;font-size:.82rem;outline:none;transition:border-color .3s;}
+.chat-input:focus{border-color:rgba(200,169,110,.35);}
+.chat-input::placeholder{color:var(--smoke);}
+.chat-send{background:var(--craft);border:none;color:var(--black);padding:0 13px;font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;cursor:none;transition:background .3s;}
+.chat-send:hover{background:var(--craft-light);}
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);}
+@media(max-width:768px){nav{padding:14px 20px;}.nav-links{display:none;}.hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}.stats-bar{grid-template-columns:repeat(2,1fr);}.divider{padding:0 20px;}footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}}
+</style>
+</head>
+<body>
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="hero-bg"></div>
+
+<nav>
+  <div class="nav-logo">Kodami<span>Academy</span></div>
+  <ul class="nav-links">
+    <li><a href="#recursos">Recursos</a></li>
+    <li><a href="#materias">Materias</a></li>
+    <li><a href="#">Acerca de</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">⚔ Plataforma Educativa Gratuita</div>
+    <h1 class="hero-title">La <span class="accent">Arena</span><br>del Saber</h1>
+    <p class="hero-jp">知識の戦士よ、戦いを始めよ</p>
+    <p class="hero-desc">Juegos, libros, videos, documentos y audio educativo. Aprende cualquier materia a través del desafío y la estrategia.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('recursos').scrollIntoView({behavior:'smooth'})"><span>⚔ Explorar Recursos</span></button>
+      <button class="btn-secondary" onclick="toggleChat()">Hablar con Sensei</button>
+    </div>
+  </div>
+</section>
+
+<div class="stats-bar reveal" id="statsBar">
+  <div class="stat-item"><span class="stat-num" data-target="12">0</span><span class="stat-label">Recursos</span></div>
+  <div class="stat-item"><span class="stat-num" data-target="6">0</span><span class="stat-label">Materias</span></div>
+  <div class="stat-item"><span class="stat-num" data-target="5">0</span><span class="stat-label">Formatos</span></div>
+  <div class="stat-item"><span class="stat-num">∞</span><span class="stat-label">Acceso Gratuito</span></div>
+</div>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-symbol">⛩</div><div class="divider-line"></div></div>
+
+<div class="materias-nav reveal" id="materias">
+  <p class="materias-label">⚔ Elige tu materia</p>
+  <div class="materias-tabs">
+    <button class="materia-tab active" onclick="switchMateria('matematicas',this)">🔢 Matemáticas</button>
+    <button class="materia-tab soon" onclick="switchMateria('ciencias',this)">🔬 Ciencias <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('historia',this)">📖 Historia <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('geografia',this)">🌍 Geografía <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('espanol',this)">💬 Español <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('arte',this)">🎨 Arte <span class="soon-badge">Próx.</span></button>
+  </div>
+</div>
+
+<div class="search-section reveal">
+  <p class="search-label">⚔ Busca tu recurso</p>
+  <div class="search-container">
+    <input class="search-input" id="searchInput" type="text" placeholder="Ej: fracciones, álgebra, videos..." oninput="applyFilters()">
+    <button class="search-btn" onclick="applyFilters()">Buscar</button>
+  </div>
+</div>
+
+<section class="section reveal" id="recursos">
+  <div class="section-header">
+    <h2 class="section-title" id="sectionTitle">Matemáticas</h2>
+    <span class="section-jp" id="sectionJp">数学</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="category-pills" id="pills">
+    <button class="pill active" onclick="filterCat('all',this)">Todos</button>
+    <button class="pill" onclick="filterCat('juego',this)">⚔ Juegos</button>
+    <button class="pill" onclick="filterCat('libro',this)">📚 Libros</button>
+    <button class="pill" onclick="filterCat('video',this)">🎬 Videos</button>
+    <button class="pill" onclick="filterCat('documento',this)">📄 Documentos</button>
+    <button class="pill" onclick="filterCat('audio',this)">🎵 Audio</button>
+  </div>
+  <div class="resources-grid" id="resourcesGrid"></div>
+  <div class="coming-soon-panel" id="comingSoon">
+    <div class="cs-icon">⚔️</div>
+    <div class="cs-title">En Entrenamiento...</div>
+    <div class="cs-desc">Esta sección está siendo forjada. Pronto estará disponible con recursos de alta calidad.</div>
+    <span class="cs-version">Versión 1.0 — Solo Matemáticas</span>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">KodamiAcademy</div>
+  <p class="footer-text">Educación gratuita · Acceso público · Hecho con ⚔ e IA</p>
+</footer>
+
+<div class="mascot" id="mascot">
+  <div class="mascot-bubble" id="mascotBubble">⚔️ ¡Hola guerrero! Soy <strong>Sensei</strong>. Pregúntame qué quieres aprender.</div>
+  <div class="mascot-wrapper" onclick="toggleChat()">
+    <img class="mascot-img" id="mascotImg" src="sensei.png" alt="Sensei" onerror="this.style.fontSize='3rem';this.outerHTML='<div style=\'font-size:3rem;cursor:none\' onclick=\'toggleChat()\'>🦝</div>'">
+    <div class="mascot-ping" id="mascotPing"></div>
+  </div>
+</div>
+
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <img class="chat-avatar" id="chatAvatar" src="sensei.png" alt="Sensei" onerror="this.style.display='none'">
+      <div>
+        <div class="chat-header-title" id="chatName">⚔ Sensei</div>
+        <div class="chat-header-sub" id="chatSub">Guardián del conocimiento</div>
+      </div>
+    </div>
+    <button class="chat-close" onclick="toggleChat()">✕</button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg msg-ai">¡Bienvenido a KodamiAcademy! 🦝⚔️ Soy <strong>Sensei</strong>. Puedo ayudarte a encontrar recursos, explicar temas o buscar información en internet. ¿Por dónde empezamos?</div>
+  </div>
+  <div class="chat-input-area">
+    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." onkeydown="if(event.key==='Enter')sendMsg()">
+    <button class="chat-send" onclick="sendMsg()">→</button>
+  </div>
+</div>
+
+<script>
+// CURSOR
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
+(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
+
+// API
+const KEY1='';
+const KEY2='';
+const today=new Date().toDateString();
+if(localStorage.getItem('kodami_date')!==today){localStorage.setItem('kodami_req','0');localStorage.setItem('kodami_date',today);}
+let reqs=parseInt(localStorage.getItem('kodami_req')||'0');
+function getKey(){return reqs<1200?KEY1:KEY2;}
+function trackReq(){reqs++;localStorage.setItem('kodami_req',reqs);checkMascot();}
+
+function checkMascot(){
+  const img=document.getElementById('mascotImg');
+  const ping=document.getElementById('mascotPing');
+  if(reqs>=1200&&reqs<1400){
+    img.classList.add('tired');
+    showBubble('😴 Estoy agotado... pero aguanto un poco más...');
+  } else if(reqs>=1400){
+    img.src='kira.png';img.className='mascot-img kira-active';
+    ping.classList.add('blue');
+    document.getElementById('chatAvatar').src='kira.png';
+    document.getElementById('chatName').textContent='❄ Kira';
+    document.getElementById('chatName').style.color='var(--blue)';
+    document.getElementById('chatSub').textContent='Guardiana del hielo';
+    showBubble('❄ ¡El relevo es mío! Soy Kira. ¿En qué te ayudo?');
+    addMsg('⚡ <strong>Sensei</strong> necesita descansar. ¡Yo tomo el relevo! Soy <strong>Kira</strong> ❄️',true,true);
+  }
+}
+checkMascot();
+
+function showBubble(txt){
+  const b=document.getElementById('mascotBubble');
+  b.textContent=txt;b.classList.remove('hidden');
+  setTimeout(()=>b.classList.add('hidden'),5000);
+}
+
+// RESOURCES
+const resources=[
+  {id:1,title:'Duelo de Fracciones',cat:'juego',desc:'Batalla de fracciones equivalentes en tiempo real.',icon:'⚔️',badge:'web',badgeClass:'badge-web',level:2,link:'#'},
+  {id:2,title:'Geometría Ninja',cat:'juego',desc:'Calcula áreas y perímetros contra el tiempo.',icon:'📐',badge:'web',badgeClass:'badge-web',level:3,link:'#'},
+  {id:3,title:'Álgebra Samurai',cat:'juego',desc:'Resuelve ecuaciones para desbloquear el siguiente nivel.',icon:'🀄',badge:'apk',badgeClass:'badge-apk',level:3,link:'#'},
+  {id:4,title:'Ruta de la Lógica',cat:'juego',desc:'Puzzles de razonamiento lógico y patrones numéricos.',icon:'🧩',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
+  {id:5,title:'Aritmética Veloz',cat:'juego',desc:'Operaciones básicas contra el reloj.',icon:'⚡',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
+  {id:6,title:'Imperio de las Tablas',cat:'juego',desc:'Domina las tablas de multiplicar con cartas.',icon:'🃏',badge:'zip',badgeClass:'badge-zip',level:2,link:'#'},
+  {id:7,title:'Guía de Álgebra',cat:'libro',desc:'Manual completo con ejercicios resueltos.',icon:'📚',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
+  {id:8,title:'Introducción a la Geometría',cat:'libro',desc:'Geometría euclidiana para nivel medio.',icon:'📖',badge:'pdf',badgeClass:'badge-pdf',level:1,link:'#'},
+  {id:9,title:'Clase: Fracciones desde Cero',cat:'video',desc:'Video explicativo completo sobre fracciones.',icon:'🎬',badge:'video',badgeClass:'badge-video',level:1,link:'#'},
+  {id:10,title:'Podcast: Historia de Pi',cat:'audio',desc:'La fascinante historia del número Pi.',icon:'🎵',badge:'audio',badgeClass:'badge-audio',level:1,link:'#'},
+  {id:11,title:'Formulario de Geometría',cat:'documento',desc:'Todas las fórmulas geométricas en un documento.',icon:'📄',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
+  {id:12,title:'Ejercicios de Estadística',cat:'documento',desc:'Hoja de ejercicios con estadística descriptiva.',icon:'📊',badge:'zip',badgeClass:'badge-zip',level:3,link:'#'},
+];
+
+let currentMateria='matematicas',currentCat='all';
+const materiaInfo={matematicas:{title:'Matemáticas',jp:'数学'},ciencias:{title:'Ciencias',jp:'科学'},historia:{title:'Historia',jp:'歴史'},geografia:{title:'Geografía',jp:'地理'},espanol:{title:'Español',jp:'言語'},arte:{title:'Arte',jp:'芸術'}};
+
+function renderResources(data){
+  const grid=document.getElementById('resourcesGrid');
+  const cs=document.getElementById('comingSoon');
+  if(currentMateria!=='matematicas'){grid.style.display='none';cs.classList.add('visible');return;}
+  cs.classList.remove('visible');grid.style.display='grid';
+  if(data.length===0){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;">⚔ No se encontraron recursos para esa búsqueda</div>';return;}
+  grid.innerHTML=data.map((r,i)=>`
+    <div class="resource-card" style="animation-delay:${i*.07}s">
+      <div class="card-thumb">
+        <div class="card-icon">${r.icon}</div>
+        <span class="card-badge ${r.badgeClass}">${r.badge}</span>
+      </div>
+      <div class="card-body">
+        <div class="card-category">${r.cat}</div>
+        <div class="card-title">${r.title}</div>
+        <div class="card-desc">${r.desc}</div>
+        <div class="card-footer">
+          <div class="card-level">${[1,2,3].map(n=>`<div class="level-dot ${n<=r.level?'active':''}"></div>`).join('')}</div>
+          <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat==='juego'&&r.badge==='web'?'▶ Jugar':'⬇ Abrir'}</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+function switchMateria(mat,el){
+  currentMateria=mat;currentCat='all';
+  document.querySelectorAll('.materia-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  document.querySelectorAll('.pill').forEach((p,i)=>i===0?p.classList.add('active'):p.classList.remove('active'));
+  const info=materiaInfo[mat]||{title:mat,jp:''};
+  document.getElementById('sectionTitle').textContent=info.title;
+  document.getElementById('sectionJp').textContent=info.jp;
+  applyFilters();
+}
+function filterCat(cat,el){currentCat=cat;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');applyFilters();}
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if(currentMateria!=='matematicas'){renderResources([]);return;}
+  renderResources(resources.filter(r=>(currentCat==='all'||r.cat===currentCat)&&(q===''||r.title.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)||r.cat.includes(q))));
+}
+renderResources(resources);
+
+// COUNTERS
+const obsEl=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){
+    e.target.classList.add('visible');
+    if(e.target.id==='statsBar')document.querySelectorAll('[data-target]').forEach(el=>{
+      const t=+el.dataset.target;let c=0;
+      const iv=setInterval(()=>{c=Math.min(c+t/40,t);el.textContent=Math.floor(c);if(c>=t)clearInterval(iv);},35);
+    });
+  }
+}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obsEl.observe(el));
+
+// MASCOT BUBBLE
+let bubbleHidden=false;
+setTimeout(()=>{if(!bubbleHidden){document.getElementById('mascotBubble').classList.add('hidden');bubbleHidden=true;}},6000);
+
+// CHAT
+let chatOpen=false;
+function toggleChat(){
+  chatOpen=!chatOpen;
+  const p=document.getElementById('chatPanel');
+  chatOpen?(p.classList.add('open'),document.getElementById('mascotBubble').classList.add('hidden'),bubbleHidden=true):p.classList.remove('open');
+}
+
+function addMsg(text,isAi,isKira=false){
+  const msgs=document.getElementById('chatMessages');
+  const cls=isAi?`msg msg-ai${isKira?' kira':''}`:'msg msg-user';
+  msgs.innerHTML+=`<div class="${cls}">${text}</div>`;
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+const SYSTEM=`Eres Sensei, mascota IA de KodamiAcademy, plataforma educativa gratuita con estética samurai/gamer.
+Funciones:
+1. BUSCADOR INTERNO: Recursos disponibles en Matemáticas: Juegos (Duelo de Fracciones, Geometría Ninja, Álgebra Samurai, Ruta de la Lógica, Aritmética Veloz, Imperio de las Tablas), Libros PDF (Guía de Álgebra, Introducción a la Geometría), Videos (Clase Fracciones desde Cero), Audio (Podcast Historia de Pi), Documentos (Formulario Geometría, Ejercicios Estadística). Otras materias próximamente.
+2. TUTOR/DICCIONARIO: Explica conceptos en máximo 3-4 oraciones con ejemplos simples.
+3. BUSCADOR EXTERNO: Si no hay recurso interno, sugiere: Khan Academy (es.khanacademy.org), GeoGebra (geogebra.org), Desmos (desmos.com), o búsquedas específicas en YouTube.
+Responde en español, breve, amigable, con energía de guerrero. Emojis ocasionales ⚔️🦝. Nunca inventes recursos internos que no existen.`;
+
+async function sendMsg(){
+  const input=document.getElementById('chatInput');
+  const msg=input.value.trim();if(!msg)return;input.value='';
+  addMsg(msg,false);
+  const isKira=reqs>=1400;
+  const dotColor=isKira?'blue':'gold';
+  const msgCls=isKira?'msg msg-ai kira':'msg msg-ai';
+  const tid='t'+Date.now();
+  document.getElementById('chatMessages').innerHTML+=`<div class="${msgCls} msg-typing" id="${tid}"><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div></div>`;
+  document.getElementById('chatMessages').scrollTop=99999;
+  try{
+    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getKey()}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:SYSTEM+'\n\nUsuario: '+msg}]}]})
+    });
+    trackReq();
+    const data=await res.json();
+    const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'No pude responder ⚔️';
+    document.getElementById(tid)?.remove();
+    addMsg(reply.replace(/\n/g,'<br>'),true,isKira);
+  }catch(e){
+    document.getElementById(tid)?.remove();
+    addMsg('Error de conexión. Intenta de nuevo ⚔️',true,isKira);
+  }
+}
+</script>
+</body>
+</html>
