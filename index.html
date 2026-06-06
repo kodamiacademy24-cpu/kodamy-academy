@@ -415,10 +415,10 @@ async function sendMsg(){
   document.getElementById('chatMessages').innerHTML+=`<div class="${mc} msg-typing" id="${tid}"><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div></div>`;
   document.getElementById('chatMessages').scrollTop=99999;
   try{
-    const res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    const res=await fetch('https://kodami-chat.kodami-academy24.workers.dev',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+getKey()},
-      body:JSON.stringify({model:'llama3-8b-8192',messages:[{role:'system',content:SYSTEM},{role:'user',content:msg}],max_tokens:500})
+      
+      headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,key:getKey()})
     });
     trackReq();
     const data=await res.json();
