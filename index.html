@@ -1,4 +1,4 @@
-f<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
 <meta charset="UTF-8">
@@ -263,8 +263,8 @@ document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.le
 (function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
 
 // API
-const KEY1='AQ.Ab8RN6ISxs_Mkwx292TuaBGTAMx7GWszojCClb1Y7p2zgok8KA';
-const KEY2='AQ.Ab8RN6JhA0GF26oidivErOjiwMA4iUfByCxm4vqcrGf4sGCQkw';
+const KEY1='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';
+const KEY2='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';
 const today=new Date().toDateString();
 if(localStorage.getItem('kodami_date')!==today){localStorage.setItem('kodami_req','0');localStorage.setItem('kodami_date',today);}
 let reqs=parseInt(localStorage.getItem('kodami_req')||'0');
@@ -406,13 +406,13 @@ async function sendMsg(){
   document.getElementById('chatMessages').innerHTML+=`<div class="${msgCls} msg-typing" id="${tid}"><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div></div>`;
   document.getElementById('chatMessages').scrollTop=99999;
   try{
-    const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${getKey()}`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({contents:[{parts:[{text:SYSTEM+'\n\nUsuario: '+msg}]}]})
+    const res=await fetch(`https://api.groq.com/openai/v1/chat/completions${getKey()}`,{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+getKey()},
+      body:JSON.stringify({model:'llama3-8b-8192',messages:[{role:'system',content:SYSTEM},{role:'user',content:msg}]})
     });
     trackReq();
     const data=await res.json();
-    const reply=data.candidates?.[0]?.content?.parts?.[0]?.text||'No pude responder ⚔️';
+    const reply=data.choices?.[0]?.message?.content||'No pude responder ⚔️';
     document.getElementById(tid)?.remove();
     addMsg(reply.replace(/\n/g,'<br>'),true,isKira);
   }catch(e){
