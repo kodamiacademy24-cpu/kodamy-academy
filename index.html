@@ -16,8 +16,8 @@ body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-seri
 .hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.png');background-size:cover;background-position:center top;opacity:.55;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,10,.3) 0%,rgba(10,10,10,.75) 55%,rgba(10,10,10,.98) 100%);}
 .mascot-fly{position:fixed;z-index:150;width:75px;height:75px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 12px rgba(200,169,110,.5));}
-.sensei-fly{animation:flySensei 35s linear infinite;top:14%;}
-.nova-fly{animation:flyNova 42s linear infinite;top:73%;filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
+.sensei-fly{animation:flySensei 18s linear infinite;top:14%;}
+.nova-fly{animation:flyNova 23s linear infinite;top:73%;filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
 @keyframes flySensei{0%{left:-100px;transform:scaleX(1)}49%{left:calc(100% + 100px);transform:scaleX(1)}50%{left:calc(100% + 100px);transform:scaleX(-1)}99%{left:-100px;transform:scaleX(-1)}100%{left:-100px;transform:scaleX(1)}}
 @keyframes flyNova{0%{left:calc(100% + 100px);transform:scaleX(-1)}49%{left:-100px;transform:scaleX(-1)}50%{left:-100px;transform:scaleX(1)}99%{left:calc(100% + 100px);transform:scaleX(1)}100%{left:calc(100% + 100px);transform:scaleX(-1)}}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);border-bottom:1px solid rgba(200,169,110,.1);}
