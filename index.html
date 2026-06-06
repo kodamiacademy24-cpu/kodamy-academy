@@ -415,7 +415,7 @@ async function sendMsg(){
   document.getElementById('chatMessages').innerHTML+=`<div class="${mc} msg-typing" id="${tid}"><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div></div>`;
   document.getElementById('chatMessages').scrollTop=99999;
   try{
-    const res=await fetch('https://kodami-chat.kodami-academy24.workers.dev',{
+    const res=await fetch('https://kodami-chat.kodami-academy24.workers.dev/',{
       method:'POST',
       
       headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,key:getKey()})
