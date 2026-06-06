@@ -16,8 +16,8 @@ body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-seri
 .hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.png');background-size:cover;background-position:center top;opacity:.55;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,10,.3) 0%,rgba(10,10,10,.75) 55%,rgba(10,10,10,.98) 100%);}
 .mascot-fly{position:fixed;z-index:150;width:75px;height:75px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 12px rgba(200,169,110,.5));}
-.sensei-fly{animation:flySensei 18s linear infinite;top:14%;}
-.nova-fly{animation:flyNova 23s linear infinite;top:73%;filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
+.sensei-fly{animation:flySensei 35s linear infinite;top:14%;}
+.nova-fly{animation:flyNova 42s linear infinite;top:73%;filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
 @keyframes flySensei{0%{left:-100px;transform:scaleX(1)}49%{left:calc(100% + 100px);transform:scaleX(1)}50%{left:calc(100% + 100px);transform:scaleX(-1)}99%{left:-100px;transform:scaleX(-1)}100%{left:-100px;transform:scaleX(1)}}
 @keyframes flyNova{0%{left:calc(100% + 100px);transform:scaleX(-1)}49%{left:-100px;transform:scaleX(-1)}50%{left:-100px;transform:scaleX(1)}99%{left:calc(100% + 100px);transform:scaleX(1)}100%{left:calc(100% + 100px);transform:scaleX(-1)}}
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);border-bottom:1px solid rgba(200,169,110,.1);}
@@ -104,7 +104,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(200,169,110,.08);display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--craft);opacity:.5;}
 .footer-text{font-size:.68rem;color:var(--smoke);letter-spacing:2px;}
-.chat-panel{position:fixed;bottom:26px;right:26px;width:325px;background:rgba(11,11,11,.97);border:1px solid rgba(200,169,110,.2);z-index:199;clip-path:polygon(0% 0%,calc(100% - 13px) 0%,100% 13px,100% 100%,13px 100%,0% calc(100% - 13px));display:none;flex-direction:column;max-height:430px;}
+.chat-panel{position:fixed;bottom:26px;right:26px;width:340px;background:rgba(11,11,11,.97);border:1px solid rgba(200,169,110,.2);z-index:199;clip-path:polygon(0% 0%,calc(100% - 13px) 0%,100% 13px,100% 100%,13px 100%,0% calc(100% - 13px));display:none;flex-direction:column;max-height:500px;}
 .chat-panel.open{display:flex;animation:bubbleIn .3s ease forwards;}
 @keyframes bubbleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
 .chat-header{padding:11px 16px;border-bottom:1px solid rgba(200,169,110,.1);display:flex;align-items:center;justify-content:space-between;}
@@ -112,12 +112,17 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 .chat-avatar{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(200,169,110,.4));}
 .chat-header-title{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);font-weight:700;}
 .chat-header-sub{font-size:.58rem;color:var(--ash);letter-spacing:1px;}
-.chat-close{background:none;border:none;color:var(--ash);cursor:none;font-size:.88rem;}
-.chat-messages{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;}
-.msg{max-width:88%;padding:8px 12px;font-size:.78rem;line-height:1.6;color:var(--silver);}
+.chat-actions{display:flex;gap:6px;}
+.chat-action-btn{background:none;border:none;color:var(--ash);cursor:none;font-size:.78rem;padding:4px;transition:color .3s;}
+.chat-action-btn:hover{color:var(--craft);}
+.chat-messages{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;min-height:280px;}
+.chat-messages::-webkit-scrollbar{width:6px;}
+.chat-messages::-webkit-scrollbar-thumb{background:var(--charcoal);border-radius:3px;}
+.msg{max-width:88%;padding:8px 12px;font-size:.78rem;line-height:1.6;color:var(--silver);word-wrap:break-word;}
 .msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:0 10px 10px 10px;align-self:flex-start;}
 .msg-ai.nova{background:rgba(74,184,255,.05);border-color:rgba(74,184,255,.12);}
 .msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px 0 10px 10px;align-self:flex-end;color:var(--white);}
+.msg-error{background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.2);color:#ff8080;}
 .msg-typing{display:flex;gap:4px;padding:10px 13px;align-items:center;}
 .typing-dot{width:5px;height:5px;border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite;}
 .typing-dot.gold{background:var(--craft);}
@@ -129,11 +134,13 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 .chat-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);color:var(--white);padding:8px 12px;font-family:'Rajdhani',sans-serif;font-size:.82rem;outline:none;transition:border-color .3s;}
 .chat-input:focus{border-color:rgba(200,169,110,.35);}
 .chat-input::placeholder{color:var(--smoke);}
+.chat-input:disabled{opacity:.5;cursor:not-allowed;}
 .chat-send{background:var(--craft);border:none;color:var(--black);padding:0 13px;font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;cursor:none;transition:background .3s;}
 .chat-send:hover{background:var(--craft-light);}
+.chat-send:disabled{background:var(--smoke);cursor:not-allowed;}
 .reveal{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;}
 .reveal.visible{opacity:1;transform:translateY(0);}
-@media(max-width:768px){nav{padding:14px 20px;}.nav-links{display:none;}.hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}.stats-bar{grid-template-columns:repeat(2,1fr);}.divider{padding:0 20px;}footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}}
+@media(max-width:768px){nav{padding:14px 20px;}.nav-links{display:none;}.hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}.stats-bar{grid-template-columns:repeat(2,1fr);}.divider{padding:0 20px;}footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}.chat-panel{width:calc(100% - 20px);right:10px;bottom:10px;max-height:70vh;}}
 </style>
 </head>
 <body>
@@ -232,112 +239,165 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
         <div class="chat-header-sub" id="chatSub">Guardián del conocimiento</div>
       </div>
     </div>
-    <button class="chat-close" onclick="toggleChat()">✕</button>
+    <div class="chat-actions">
+      <button class="chat-action-btn" onclick="clearChat()" title="Limpiar chat">🗑</button>
+      <button class="chat-action-btn" onclick="toggleChat()" title="Cerrar">✕</button>
+    </div>
   </div>
   <div class="chat-messages" id="chatMessages">
     <div class="msg msg-ai">¡Bienvenido a KodamiAcademy! 🦝⚔️ Soy <strong>Sensei</strong>. Puedo ayudarte a encontrar recursos, explicar temas o buscar información. ¿Por dónde empezamos?</div>
   </div>
   <div class="chat-input-area">
-    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." onkeydown="if(event.key==='Enter')sendMsg()">
-    <button class="chat-send" onclick="sendMsg()">→</button>
+    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." maxlength="2000" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMsg();}">
+    <button class="chat-send" id="chatSendBtn" onclick="sendMsg()">→</button>
   </div>
 </div>
 
 <script>
-// CURSOR
-const cur=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
-let mx=0,my=0,rx=0,ry=0;
-document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;cur.style.left=mx+'px';cur.style.top=my+'px';});
-(function loop(){rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(loop);})();
+// ============================================
+// CURSOR PERSONALIZADO
+// ============================================
+const cur = document.getElementById('cursor');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
 
-// STARS & METEORS
-const sc=document.getElementById('starsCanvas');
-const sx=sc.getContext('2d');
-function resizeSc(){sc.width=window.innerWidth;sc.height=window.innerHeight;}
-resizeSc();window.addEventListener('resize',resizeSc);
-const stars=Array.from({length:100},()=>({
-  x:Math.random()*window.innerWidth,
-  y:Math.random()*window.innerHeight,
-  size:Math.random()*1.2+.2,
-  opacity:Math.random()*.6+.1,
-  dir:Math.random()>.5?1:-1
+document.addEventListener('mousemove', e => {
+  mx = e.clientX;
+  my = e.clientY;
+  cur.style.left = mx + 'px';
+  cur.style.top = my + 'px';
+});
+
+(function loop() {
+  rx += (mx - rx) * 0.12;
+  ry += (my - ry) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top = ry + 'px';
+  requestAnimationFrame(loop);
+})();
+
+// ============================================
+// ESTRELLAS Y METEOROS
+// ============================================
+const sc = document.getElementById('starsCanvas');
+const sx = sc.getContext('2d');
+
+function resizeSc() {
+  sc.width = window.innerWidth;
+  sc.height = window.innerHeight;
+}
+resizeSc();
+window.addEventListener('resize', resizeSc);
+
+const stars = Array.from({ length: 100 }, () => ({
+  x: Math.random() * window.innerWidth,
+  y: Math.random() * window.innerHeight,
+  size: Math.random() * 1.2 + 0.2,
+  opacity: Math.random() * 0.6 + 0.1,
+  dir: Math.random() > 0.5 ? 1 : -1
 }));
-const meteors=[];
-function spawnMeteor(){
-  if(meteors.length<5){
+
+const meteors = [];
+function spawnMeteor() {
+  if (meteors.length < 5) {
     meteors.push({
-      x:Math.random()*window.innerWidth,
-      y:Math.random()*window.innerHeight*.3,
-      len:Math.random()*140+60,
-      speed:Math.random()*7+4,
-      opacity:1,
-      angle:Math.PI/4
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight * 0.3,
+      len: Math.random() * 140 + 60,
+      speed: Math.random() * 7 + 4,
+      opacity: 1,
+      angle: Math.PI / 4
     });
   }
 }
-setInterval(spawnMeteor,2500);
-function drawStars(){
-  sx.clearRect(0,0,sc.width,sc.height);
-  stars.forEach(s=>{
-    s.opacity+=.003*s.dir;
-    if(s.opacity>=.8||s.opacity<=.05)s.dir*=-1;
-    sx.beginPath();sx.arc(s.x,s.y,s.size,0,Math.PI*2);
-    sx.fillStyle=`rgba(200,169,110,${s.opacity})`;sx.fill();
-  });
-  for(let i=meteors.length-1;i>=0;i--){
-    const m=meteors[i];
-    const gx=sx.createLinearGradient(m.x,m.y,m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
-    gx.addColorStop(0,`rgba(255,220,150,${m.opacity})`);
-    gx.addColorStop(1,'rgba(200,169,110,0)');
+setInterval(spawnMeteor, 2500);
+
+function drawStars() {
+  sx.clearRect(0, 0, sc.width, sc.height);
+  stars.forEach(s => {
+    s.opacity += 0.003 * s.dir;
+    if (s.opacity >= 0.8 || s.opacity <= 0.05) s.dir *= -1;
     sx.beginPath();
-    sx.moveTo(m.x,m.y);
-    sx.lineTo(m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
-    sx.strokeStyle=gx;sx.lineWidth=2;sx.stroke();
-    m.x+=Math.cos(m.angle)*m.speed;
-    m.y+=Math.sin(m.angle)*m.speed;
-    m.opacity-=.018;
-    if(m.opacity<=0||m.x>sc.width+100||m.y>sc.height+100)meteors.splice(i,1);
+    sx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
+    sx.fillStyle = `rgba(200,169,110,${s.opacity})`;
+    sx.fill();
+  });
+  for (let i = meteors.length - 1; i >= 0; i--) {
+    const m = meteors[i];
+    const gx = sx.createLinearGradient(
+      m.x, m.y,
+      m.x - Math.cos(m.angle) * m.len,
+      m.y - Math.sin(m.angle) * m.len
+    );
+    gx.addColorStop(0, `rgba(255,220,150,${m.opacity})`);
+    gx.addColorStop(1, 'rgba(200,169,110,0)');
+    sx.beginPath();
+    sx.moveTo(m.x, m.y);
+    sx.lineTo(m.x - Math.cos(m.angle) * m.len, m.y - Math.sin(m.angle) * m.len);
+    sx.strokeStyle = gx;
+    sx.lineWidth = 2;
+    sx.stroke();
+    m.x += Math.cos(m.angle) * m.speed;
+    m.y += Math.sin(m.angle) * m.speed;
+    m.opacity -= 0.018;
+    if (m.opacity <= 0 || m.x > sc.width + 100 || m.y > sc.height + 100) {
+      meteors.splice(i, 1);
+    }
   }
   requestAnimationFrame(drawStars);
 }
 drawStars();
 
-// API GROQ
-const KEY1='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';
-const KEY2='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';
-const today=new Date().toDateString();
-if(localStorage.getItem('kodami_date')!==today){localStorage.setItem('kodami_req','0');localStorage.setItem('kodami_date',today);}
-let reqs=parseInt(localStorage.getItem('kodami_req')||'0');
-function getKey(){return reqs<7200?KEY1:KEY2;}
-function trackReq(){reqs++;localStorage.setItem('kodami_req',reqs);}
-
-// RESOURCES
-const resources=[
-  {id:1,title:'Duelo de Fracciones',cat:'juego',desc:'Batalla de fracciones equivalentes en tiempo real.',icon:'⚔️',badge:'web',badgeClass:'badge-web',level:2,link:'#'},
-  {id:2,title:'Geometría Ninja',cat:'juego',desc:'Calcula áreas y perímetros contra el tiempo.',icon:'📐',badge:'web',badgeClass:'badge-web',level:3,link:'#'},
-  {id:3,title:'Álgebra Samurai',cat:'juego',desc:'Resuelve ecuaciones para desbloquear el siguiente nivel.',icon:'🀄',badge:'apk',badgeClass:'badge-apk',level:3,link:'#'},
-  {id:4,title:'Ruta de la Lógica',cat:'juego',desc:'Puzzles de razonamiento lógico y patrones numéricos.',icon:'🧩',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
-  {id:5,title:'Aritmética Veloz',cat:'juego',desc:'Operaciones básicas contra el reloj.',icon:'⚡',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
-  {id:6,title:'Imperio de las Tablas',cat:'juego',desc:'Domina las tablas de multiplicar con cartas.',icon:'🃏',badge:'zip',badgeClass:'badge-zip',level:2,link:'#'},
-  {id:7,title:'Guía de Álgebra',cat:'libro',desc:'Manual completo con ejercicios resueltos.',icon:'📚',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
-  {id:8,title:'Introducción a la Geometría',cat:'libro',desc:'Geometría euclidiana para nivel medio.',icon:'📖',badge:'pdf',badgeClass:'badge-pdf',level:1,link:'#'},
-  {id:9,title:'Clase: Fracciones desde Cero',cat:'video',desc:'Video explicativo completo sobre fracciones.',icon:'🎬',badge:'video',badgeClass:'badge-video',level:1,link:'#'},
-  {id:10,title:'Podcast: Historia de Pi',cat:'audio',desc:'La fascinante historia del número Pi.',icon:'🎵',badge:'audio',badgeClass:'badge-audio',level:1,link:'#'},
-  {id:11,title:'Formulario de Geometría',cat:'documento',desc:'Todas las fórmulas geométricas en un documento.',icon:'📄',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
-  {id:12,title:'Ejercicios de Estadística',cat:'documento',desc:'Hoja de ejercicios con estadística descriptiva.',icon:'📊',badge:'zip',badgeClass:'badge-zip',level:3,link:'#'},
+// ============================================
+// RECURSOS EDUCATIVOS
+// ============================================
+const resources = [
+  { id: 1, title: 'Duelo de Fracciones', cat: 'juego', desc: 'Batalla de fracciones equivalentes en tiempo real.', icon: '⚔️', badge: 'web', badgeClass: 'badge-web', level: 2, link: '#' },
+  { id: 2, title: 'Geometría Ninja', cat: 'juego', desc: 'Calcula áreas y perímetros contra el tiempo.', icon: '📐', badge: 'web', badgeClass: 'badge-web', level: 3, link: '#' },
+  { id: 3, title: 'Álgebra Samurai', cat: 'juego', desc: 'Resuelve ecuaciones para desbloquear el siguiente nivel.', icon: '🀄', badge: 'apk', badgeClass: 'badge-apk', level: 3, link: '#' },
+  { id: 4, title: 'Ruta de la Lógica', cat: 'juego', desc: 'Puzzles de razonamiento lógico y patrones numéricos.', icon: '🧩', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
+  { id: 5, title: 'Aritmética Veloz', cat: 'juego', desc: 'Operaciones básicas contra el reloj.', icon: '⚡', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
+  { id: 6, title: 'Imperio de las Tablas', cat: 'juego', desc: 'Domina las tablas de multiplicar con cartas.', icon: '🃏', badge: 'zip', badgeClass: 'badge-zip', level: 2, link: '#' },
+  { id: 7, title: 'Guía de Álgebra', cat: 'libro', desc: 'Manual completo con ejercicios resueltos.', icon: '📚', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
+  { id: 8, title: 'Introducción a la Geometría', cat: 'libro', desc: 'Geometría euclidiana para nivel medio.', icon: '📖', badge: 'pdf', badgeClass: 'badge-pdf', level: 1, link: '#' },
+  { id: 9, title: 'Clase: Fracciones desde Cero', cat: 'video', desc: 'Video explicativo completo sobre fracciones.', icon: '🎬', badge: 'video', badgeClass: 'badge-video', level: 1, link: '#' },
+  { id: 10, title: 'Podcast: Historia de Pi', cat: 'audio', desc: 'La fascinante historia del número Pi.', icon: '🎵', badge: 'audio', badgeClass: 'badge-audio', level: 1, link: '#' },
+  { id: 11, title: 'Formulario de Geometría', cat: 'documento', desc: 'Todas las fórmulas geométricas en un documento.', icon: '📄', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
+  { id: 12, title: 'Ejercicios de Estadística', cat: 'documento', desc: 'Hoja de ejercicios con estadística descriptiva.', icon: '📊', badge: 'zip', badgeClass: 'badge-zip', level: 3, link: '#' },
 ];
 
-let currentMateria='matematicas',currentCat='all';
-const materiaInfo={matematicas:{title:'Matemáticas',jp:'数学'},ciencias:{title:'Ciencias',jp:'科学'},historia:{title:'Historia',jp:'歴史'},geografia:{title:'Geografía',jp:'地理'},espanol:{title:'Español',jp:'言語'},arte:{title:'Arte',jp:'芸術'}};
+let currentMateria = 'matematicas';
+let currentCat = 'all';
 
-function renderResources(data){
-  const grid=document.getElementById('resourcesGrid');
-  const cs=document.getElementById('comingSoon');
-  if(currentMateria!=='matematicas'){grid.style.display='none';cs.classList.add('visible');return;}
-  cs.classList.remove('visible');grid.style.display='grid';
-  if(data.length===0){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;">⚔ No se encontraron recursos</div>';return;}
-  grid.innerHTML=data.map((r,i)=>`
-    <div class="resource-card" style="animation-delay:${i*.07}s">
+const materiaInfo = {
+  matematicas: { title: 'Matemáticas', jp: '数学' },
+  ciencias: { title: 'Ciencias', jp: '科学' },
+  historia: { title: 'Historia', jp: '歴史' },
+  geografia: { title: 'Geografía', jp: '地理' },
+  espanol: { title: 'Español', jp: '言語' },
+  arte: { title: 'Arte', jp: '芸術' }
+};
+
+function renderResources(data) {
+  const grid = document.getElementById('resourcesGrid');
+  const cs = document.getElementById('comingSoon');
+  
+  if (currentMateria !== 'matematicas') {
+    grid.style.display = 'none';
+    cs.classList.add('visible');
+    return;
+  }
+  
+  cs.classList.remove('visible');
+  grid.style.display = 'grid';
+  
+  if (data.length === 0) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;">⚔ No se encontraron recursos</div>';
+    return;
+  }
+  
+  grid.innerHTML = data.map((r, i) => `
+    <div class="resource-card" style="animation-delay:${i * 0.07}s">
       <div class="card-thumb">
         <div class="card-icon">${r.icon}</div>
         <span class="card-badge ${r.badgeClass}">${r.badge}</span>
@@ -347,88 +407,265 @@ function renderResources(data){
         <div class="card-title">${r.title}</div>
         <div class="card-desc">${r.desc}</div>
         <div class="card-footer">
-          <div class="card-level">${[1,2,3].map(n=>`<div class="level-dot ${n<=r.level?'active':''}"></div>`).join('')}</div>
-          <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat==='juego'&&r.badge==='web'?'▶ Jugar':'⬇ Abrir'}</button>
+          <div class="card-level">${[1, 2, 3].map(n => `<div class="level-dot ${n <= r.level ? 'active' : ''}"></div>`).join('')}</div>
+          <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat === 'juego' && r.badge === 'web' ? '▶ Jugar' : '⬇ Abrir'}</button>
         </div>
       </div>
-    </div>`).join('');
+    </div>
+  `).join('');
 }
 
-function switchMateria(mat,el){
-  currentMateria=mat;currentCat='all';
-  document.querySelectorAll('.materia-tab').forEach(t=>t.classList.remove('active'));
+function switchMateria(mat, el) {
+  currentMateria = mat;
+  currentCat = 'all';
+  document.querySelectorAll('.materia-tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  document.querySelectorAll('.pill').forEach((p,i)=>i===0?p.classList.add('active'):p.classList.remove('active'));
-  const info=materiaInfo[mat]||{title:mat,jp:''};
-  document.getElementById('sectionTitle').textContent=info.title;
-  document.getElementById('sectionJp').textContent=info.jp;
+  document.querySelectorAll('.pill').forEach((p, i) => i === 0 ? p.classList.add('active') : p.classList.remove('active'));
+  const info = materiaInfo[mat] || { title: mat, jp: '' };
+  document.getElementById('sectionTitle').textContent = info.title;
+  document.getElementById('sectionJp').textContent = info.jp;
   applyFilters();
 }
-function filterCat(cat,el){currentCat=cat;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');applyFilters();}
-function applyFilters(){
-  const q=document.getElementById('searchInput').value.toLowerCase();
-  if(currentMateria!=='matematicas'){renderResources([]);return;}
-  renderResources(resources.filter(r=>(currentCat==='all'||r.cat===currentCat)&&(q===''||r.title.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)||r.cat.includes(q))));
+
+function filterCat(cat, el) {
+  currentCat = cat;
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
 }
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  if (currentMateria !== 'matematicas') {
+    renderResources([]);
+    return;
+  }
+  renderResources(resources.filter(r =>
+    (currentCat === 'all' || r.cat === currentCat) &&
+    (q === '' || r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.cat.includes(q))
+  ));
+}
+
 renderResources(resources);
 
-// COUNTERS
-const obsEl=new IntersectionObserver(entries=>entries.forEach(e=>{
-  if(e.isIntersecting){
+// ============================================
+// CONTADORES ANIMADOS
+// ============================================
+const obsEl = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) {
     e.target.classList.add('visible');
-    if(e.target.id==='statsBar')document.querySelectorAll('[data-target]').forEach(el=>{
-      const t=+el.dataset.target;let c=0;
-      const iv=setInterval(()=>{c=Math.min(c+t/40,t);el.textContent=Math.floor(c);if(c>=t)clearInterval(iv);},35);
-    });
+    if (e.target.id === 'statsBar') {
+      document.querySelectorAll('[data-target]').forEach(el => {
+        const t = +el.dataset.target;
+        let c = 0;
+        const iv = setInterval(() => {
+          c = Math.min(c + t / 40, t);
+          el.textContent = Math.floor(c);
+          if (c >= t) clearInterval(iv);
+        }, 35);
+      });
+    }
   }
-}),{threshold:.1});
-document.querySelectorAll('.reveal').forEach(el=>obsEl.observe(el));
+}), { threshold: 0.1 });
 
-// CHAT
-let chatOpen=false;
-function toggleChat(){
-  chatOpen=!chatOpen;
-  document.getElementById('chatPanel').classList.toggle('open',chatOpen);
-}
-function addMsg(text,isAi,isNova=false){
-  const msgs=document.getElementById('chatMessages');
-  msgs.innerHTML+=`<div class="msg ${isAi?`msg-ai${isNova?' nova':''}`:'msg-user'}">${text}</div>`;
-  msgs.scrollTop=msgs.scrollHeight;
-}
+document.querySelectorAll('.reveal').forEach(el => obsEl.observe(el));
 
-const SYSTEM=`Eres Sensei, mascota IA de KodamiAcademy, plataforma educativa gratuita con estética samurai/gamer.
-Funciones:
-1. BUSCADOR INTERNO: Recursos en Matemáticas: Juegos (Duelo de Fracciones, Geometría Ninja, Álgebra Samurai, Ruta de la Lógica, Aritmética Veloz, Imperio de las Tablas), Libros PDF (Guía de Álgebra, Introducción a la Geometría), Videos (Clase Fracciones desde Cero), Audio (Podcast Historia de Pi), Documentos (Formulario Geometría, Ejercicios Estadística).
-2. TUTOR Y DICCIONARIO: Explica conceptos en máximo 4 oraciones con ejemplos simples.
-3. BUSCADOR EXTERNO: Si no hay recurso interno sugiere Khan Academy (es.khanacademy.org), GeoGebra (geogebra.org), Desmos (desmos.com) o YouTube.
-4. MULTI-MATERIA: Para otras materias indica que próximamente habrá recursos y sugiere fuentes externas.
-Responde en español, breve, amigable, con energía de guerrero. Emojis ocasionales. Nunca inventes recursos internos.`;
+// ============================================
+// CHAT CON IA - CÓDIGO CORREGIDO Y MEJORADO
+// ============================================
 
-async function sendMsg(){
-  const input=document.getElementById('chatInput');
-  const msg=input.value.trim();if(!msg)return;input.value='';
-  addMsg(msg,false);
-  const isNova=reqs>=7200;
-  const tid='t'+Date.now();
-  const dc=isNova?'blue':'gold';
-  const mc=isNova?'msg msg-ai nova':'msg msg-ai';
-  document.getElementById('chatMessages').innerHTML+=`<div class="${mc} msg-typing" id="${tid}"><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div></div>`;
-  document.getElementById('chatMessages').scrollTop=99999;
-  try{
-    const res=await fetch('https://kodami-chat.kodami-academy24.workers.dev/',{
-      method:'POST',
-      
-      headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,key:getKey()})
-    });
-    trackReq();
-    const data=await res.json();
-    const reply=data.choices?.[0]?.message?.content||'No pude responder ⚔️';
-    document.getElementById(tid)?.remove();
-    addMsg(reply.replace(/\n/g,'<br>'),true,isNova);
-  }catch(e){
-    document.getElementById(tid)?.remove();
-    addMsg('Error de conexión. Intenta de nuevo ⚔️',true,isNova);
+// URL del Worker (CAMBIA ESTA URL por la tuya)
+const WORKER_URL = 'https://kodami-chat.kodami-academy24.workers.dev/';
+
+// Historial de conversación (para mantener contexto)
+let chatHistory = [];
+let chatOpen = false;
+let isSending = false; // Prevenir envíos múltiples
+
+function toggleChat() {
+  chatOpen = !chatOpen;
+  document.getElementById('chatPanel').classList.toggle('open', chatOpen);
+  if (chatOpen) {
+    setTimeout(() => document.getElementById('chatInput').focus(), 100);
   }
+}
+
+function clearChat() {
+  if (!confirm('¿Limpiar todo el historial de chat?')) return;
+  chatHistory = [];
+  const msgs = document.getElementById('chatMessages');
+  msgs.innerHTML = '<div class="msg msg-ai">¡Chat limpio! 🦝⚔️ ¿En qué puedo ayudarte ahora?</div>';
+}
+
+// Sanitización básica para prevenir XSS
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+function addMsg(text, isAi, isNova = false, isError = false) {
+  const msgs = document.getElementById('chatMessages');
+  const msgDiv = document.createElement('div');
+  
+  let className = 'msg';
+  if (isAi) {
+    className += ' msg-ai' + (isNova ? ' nova' : '');
+  } else {
+    className += ' msg-user';
+  }
+  if (isError) {
+    className += ' msg-error';
+  }
+  
+  msgDiv.className = className;
+  msgDiv.innerHTML = text;
+  msgs.appendChild(msgDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  return msgDiv;
+}
+
+async function sendMsg() {
+  // Prevenir envíos múltiples o con campo vacío
+  if (isSending) return;
+  
+  const input = document.getElementById('chatInput');
+  const sendBtn = document.getElementById('chatSendBtn');
+  const msg = input.value.trim();
+  
+  if (!msg) return;
+  if (msg.length > 2000) {
+    addMsg('⚠️ El mensaje es demasiado largo (máximo 2000 caracteres)', true, false, true);
+    return;
+  }
+  
+  // Deshabilitar input mientras se procesa
+  isSending = true;
+  input.value = '';
+  input.disabled = true;
+  sendBtn.disabled = true;
+  
+  // Mostrar mensaje del usuario
+  addMsg(escapeHtml(msg), false);
+  
+  // Guardar en historial
+  chatHistory.push({ role: 'user', content: msg });
+  
+  // Indicador de escritura
+  const tid = 't' + Date.now();
+  const msgs = document.getElementById('chatMessages');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'msg msg-ai msg-typing';
+  typingDiv.id = tid;
+  typingDiv.innerHTML = '<div class="typing-dot gold"></div><div class="typing-dot gold"></div><div class="typing-dot gold"></div>';
+  msgs.appendChild(typingDiv);
+  msgs.scrollTop = msgs.scrollHeight;
+  
+  try {
+    // Timeout de 30 segundos
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        message: msg,
+        history: chatHistory.slice(-10) // Solo últimos 10 mensajes
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    // VERIFICAR QUE LA RESPUESTA SEA EXITOSA
+    if (!res.ok) {
+      let errorMsg = `Error del servidor (${res.status})`;
+      try {
+        const errorData = await res.json();
+        errorMsg = errorData.error || errorMsg;
+      } catch (e) {
+        const errorText = await res.text();
+        if (errorText) errorMsg += ': ' + errorText;
+      }
+      throw new Error(errorMsg);
+    }
+    
+    // LEER LA RESPUESTA COMO TEXTO PRIMERO
+    const responseText = await res.text();
+    
+    // VERIFICAR QUE NO ESTÉ VACÍA
+    if (!responseText || responseText.trim() === '') {
+      throw new Error('Respuesta vacía del servidor');
+    }
+    
+    // PARSEAR JSON DE FORMA SEGURA
+    let data;
+    try {
+      data = JSON.parse(responseText);
+    } catch (parseError) {
+      console.error('Respuesta no es JSON válido:', responseText);
+      throw new Error('Respuesta inválida del servidor');
+    }
+    
+    // VERIFICAR SI HAY ERROR EN LA RESPUESTA
+    if (data.error) {
+      throw new Error(data.error.message || data.error || 'Error de la IA');
+    }
+    
+    // EXTRAER LA RESPUESTA
+    const reply = data.choices?.[0]?.message?.content;
+    
+    if (!reply || reply.trim() === '') {
+      throw new Error('La IA no generó una respuesta');
+    }
+    
+    // Eliminar indicador de escritura
+    document.getElementById(tid)?.remove();
+    
+    // Guardar respuesta en historial
+    chatHistory.push({ role: 'assistant', content: reply });
+    
+    // Mostrar respuesta (convertir saltos de línea a <br>)
+    const formattedReply = escapeHtml(reply).replace(/\n/g, '<br>');
+    addMsg(formattedReply, true, false, false);
+    
+  } catch (e) {
+    console.error('Error en el chat:', e);
+    document.getElementById(tid)?.remove();
+    
+    // Remover el último mensaje del usuario del historial si falló
+    if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
+      chatHistory.pop();
+    }
+    
+    let errorMsg = '⚔️ ';
+    if (e.name === 'AbortError') {
+      errorMsg += 'La respuesta tardó demasiado. Intenta de nuevo.';
+    } else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
+      errorMsg += 'Error de conexión. Verifica tu internet.';
+    } else {
+      errorMsg += escapeHtml(e.message);
+    }
+    
+    addMsg(errorMsg, true, false, true);
+  } finally {
+    // Rehabilitar input
+    isSending = false;
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
+  }
+}
+
+// ============================================
+// SOPORTE PARA MÓVILES (mostrar cursor normal)
+// ============================================
+if ('ontouchstart' in window) {
+  document.body.style.cursor = 'auto';
+  cur.style.display = 'none';
+  ring.style.display = 'none';
 }
 </script>
 </body>
