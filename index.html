@@ -6,20 +6,49 @@
 <title>KodamiAcademy — La Arena del Saber</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--black:#0a0a0a;--deep:#111;--dark:#1a1a1a;--charcoal:#2a2a2a;--smoke:#3a3a3a;--ash:#888;--silver:#c0c0c0;--white:#f0f0f0;--craft:#c8a96e;--craft-light:#e8c87e;--blue:#4ab8ff;}
+:root{--black:#0a0a0a;--deep:#111;--dark:#1a1a1a;--charcoal:#2a2a2a;--smoke:#3a3a3a;--ash:#888;--silver:#c0c0c0;--white:#f0f0f0;--craft:#c8a96e;--craft-light:#e8c87e;--blue:#4ab8ff;--chat-w:380px;}
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
 body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
-.cursor{position:fixed;width:12px;height:12px;background:var(--craft);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;}
-.cursor-ring{position:fixed;width:36px;height:36px;border:1.5px solid var(--craft);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);opacity:.6;}
+
+/* ============================================
+   CURSOR PINCEL DIGITAL (SHODŌ)
+   ============================================ */
+.cursor-brush{position:fixed;top:0;left:0;width:28px;height:28px;pointer-events:none;z-index:10000;transform-origin:3px 3px;transition:transform .15s ease,filter .2s ease,opacity .2s ease;will-change:transform,left,top;}
+.cursor-brush svg{width:100%;height:100%;filter:drop-shadow(0 0 3px rgba(200,169,110,.4));transition:fill .3s ease,filter .3s ease;}
+.cursor-brush.idle{animation:brushIdle 3s ease-in-out infinite;}
+@keyframes brushIdle{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.05)}}
+.cursor-brush.hovering{transform:scale(1.3) rotate(0deg);animation:none;}
+.cursor-brush.hovering svg{filter:drop-shadow(0 0 8px var(--craft)) drop-shadow(0 0 16px rgba(200,169,110,.3));}
+.cursor-brush.text-mode{transform:scale(.5) rotate(0deg);animation:none;opacity:.6;}
+.cursor-brush.text-mode svg{filter:drop-shadow(0 0 2px var(--craft));}
+.cursor-brush.dragging{opacity:0;transition:opacity .1s ease;}
+.cursor-brush.nova-active svg path{fill:var(--blue);}
+.cursor-brush.nova-active svg{filter:drop-shadow(0 0 3px rgba(74,184,255,.4));}
+.cursor-brush.nova-active.hovering svg{filter:drop-shadow(0 0 8px var(--blue)) drop-shadow(0 0 16px rgba(74,184,255,.3));}
+@media(prefers-reduced-motion:reduce){.cursor-brush{animation:none!important;transition:none!important;}}
+@media(hover:none) and (pointer:coarse){.cursor-brush{display:none!important;}body{cursor:auto!important;}}
+
+/* ============================================
+   FONDO Y ESTRELLAS
+   ============================================ */
 #starsCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
-.hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.png');background-size:cover;background-position:center top;opacity:.55;}
+.hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.png');background-size:cover;background-position:center top;opacity:.55;transition:transform .1s ease-out;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,10,.3) 0%,rgba(10,10,10,.75) 55%,rgba(10,10,10,.98) 100%);}
-.mascot-fly{position:fixed;z-index:150;width:75px;height:75px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 12px rgba(200,169,110,.5));}
-.sensei-fly{animation:flySensei 35s linear infinite;top:14%;}
-.nova-fly{animation:flyNova 42s linear infinite;top:73%;filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
-@keyframes flySensei{0%{left:-100px;transform:scaleX(1)}49%{left:calc(100% + 100px);transform:scaleX(1)}50%{left:calc(100% + 100px);transform:scaleX(-1)}99%{left:-100px;transform:scaleX(-1)}100%{left:-100px;transform:scaleX(1)}}
-@keyframes flyNova{0%{left:calc(100% + 100px);transform:scaleX(-1)}49%{left:-100px;transform:scaleX(-1)}50%{left:-100px;transform:scaleX(1)}99%{left:calc(100% + 100px);transform:scaleX(1)}100%{left:calc(100% + 100px);transform:scaleX(-1)}}
+
+/* ============================================
+   MASCOTAS INTELIGENTES
+   ============================================ */
+.mascot{position:fixed;z-index:150;width:75px;height:75px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 12px rgba(200,169,110,.5));transition:opacity .4s ease,filter .3s ease;user-select:none;-webkit-user-drag:none;}
+.mascot.nova-mascot{filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
+.mascot.in-chat{opacity:0;pointer-events:none;}
+.mascot.resting{position:absolute;bottom:12px;left:12px;width:44px;height:44px;opacity:1;pointer-events:none;animation:mascotBreathe 3s ease-in-out infinite;}
+@keyframes mascotBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.03)}}
+.mascot.dragging-mascot{cursor:grabbing;z-index:200;transition:none;}
+
+/* ============================================
+   NAV Y HERO
+   ============================================ */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);border-bottom:1px solid rgba(200,169,110,.1);}
 .nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--craft);letter-spacing:3px;text-shadow:0 0 20px rgba(200,169,110,.5);}
 .nav-logo span{color:var(--white);}
@@ -27,8 +56,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .nav-links a{color:var(--ash);text-decoration:none;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;transition:color .3s;font-weight:600;}
 .nav-links a:hover{color:var(--craft);}
 .hero{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;padding:0 60px;}
-.hero-content{max-width:680px;animation:fadeUp 1.2s ease forwards;opacity:0;}
-@keyframes fadeUp{from{opacity:0;transform:translateY(40px)}to{opacity:1;transform:translateY(0)}}
+.hero-content{max-width:680px;animation:fadeUpBlur 1.2s ease forwards;opacity:0;}
+@keyframes fadeUpBlur{from{opacity:0;transform:translateY(40px);filter:blur(6px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
 .hero-tag{display:inline-block;font-size:.68rem;letter-spacing:6px;text-transform:uppercase;color:var(--craft);border:1px solid rgba(200,169,110,.3);padding:6px 16px;margin-bottom:28px;}
 .hero-title{font-family:'Cinzel Decorative',serif;font-size:clamp(2.2rem,5.5vw,4.5rem);line-height:1.05;color:var(--white);margin-bottom:8px;}
 .hero-title .accent{color:var(--craft);text-shadow:0 0 40px rgba(200,169,110,.45);}
@@ -41,6 +70,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .btn-primary span{position:relative;z-index:1;}
 .btn-secondary{background:transparent;color:var(--craft);border:1px solid rgba(200,169,110,.4);padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
 .btn-secondary:hover{background:rgba(200,169,110,.1);}
+
+/* ============================================
+   STATS, DIVIDER, MATERIAS, SEARCH
+   ============================================ */
 .stats-bar{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(200,169,110,.1);border-top:1px solid rgba(200,169,110,.1);border-bottom:1px solid rgba(200,169,110,.1);}
 .stat-item{background:rgba(10,10,10,.92);padding:22px 24px;text-align:center;}
 .stat-num{font-family:'Cinzel Decorative',serif;font-size:1.8rem;color:var(--craft);display:block;text-shadow:0 0 20px rgba(200,169,110,.3);}
@@ -63,6 +96,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .search-input::placeholder{color:var(--smoke);}
 .search-btn{background:var(--craft);border:none;padding:0 24px;color:var(--black);font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:background .3s;clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,0% 100%);}
 .search-btn:hover{background:var(--craft-light);}
+
+/* ============================================
+   RECURSOS CON TILT 3D
+   ============================================ */
 .section{position:relative;z-index:2;padding:36px 60px 60px;}
 .section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:28px;}
 .section-title{font-family:'Cinzel Decorative',serif;font-size:1.15rem;color:var(--white);letter-spacing:2px;}
@@ -71,10 +108,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .category-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
 .pill{padding:7px 17px;border:1px solid rgba(200,169,110,.14);color:var(--ash);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);background:transparent;font-family:'Rajdhani',sans-serif;font-weight:600;}
 .pill:hover,.pill.active{border-color:var(--craft);color:var(--craft);background:rgba(200,169,110,.07);}
-.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:16px;}
-.resource-card{background:rgba(17,17,17,.93);border:1px solid rgba(255,255,255,.05);position:relative;overflow:hidden;transition:transform .3s,border-color .3s;cursor:none;animation:fadeUp .6s ease forwards;opacity:0;}
+.resources-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:16px;perspective:800px;}
+.resource-card{background:rgba(17,17,17,.93);border:1px solid rgba(255,255,255,.05);position:relative;overflow:hidden;transition:transform .3s ease,border-color .3s,box-shadow .3s;cursor:none;animation:fadeUpBlur .6s ease forwards;opacity:0;transform-style:preserve-3d;}
 .resource-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--craft),transparent);transform:scaleX(0);transition:transform .4s;}
-.resource-card:hover{transform:translateY(-4px);border-color:rgba(200,169,110,.2);}
+.resource-card:hover{border-color:rgba(200,169,110,.2);box-shadow:0 8px 32px rgba(200,169,110,.08);}
 .resource-card:hover::before{transform:scaleX(1);}
 .card-thumb{width:100%;height:145px;background:var(--dark);display:flex;align-items:center;justify-content:center;position:relative;}
 .card-icon{font-size:3rem;position:relative;z-index:1;filter:drop-shadow(0 0 16px rgba(200,169,110,.3));}
@@ -101,55 +138,101 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .cs-title{font-family:'Cinzel Decorative',serif;font-size:1.3rem;color:var(--craft);margin-bottom:10px;letter-spacing:2px;}
 .cs-desc{font-size:.88rem;color:var(--ash);line-height:1.8;max-width:380px;}
 .cs-version{display:inline-block;margin-top:18px;font-size:.63rem;letter-spacing:4px;text-transform:uppercase;border:1px solid rgba(200,169,110,.18);color:rgba(200,169,110,.45);padding:5px 14px;}
+
+/* ============================================
+   FOOTER
+   ============================================ */
 footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(200,169,110,.08);display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--craft);opacity:.5;}
 .footer-text{font-size:.68rem;color:var(--smoke);letter-spacing:2px;}
-.chat-panel{position:fixed;bottom:26px;right:26px;width:340px;background:rgba(11,11,11,.97);border:1px solid rgba(200,169,110,.2);z-index:199;clip-path:polygon(0% 0%,calc(100% - 13px) 0%,100% 13px,100% 100%,13px 100%,0% calc(100% - 13px));display:none;flex-direction:column;max-height:500px;}
-.chat-panel.open{display:flex;animation:bubbleIn .3s ease forwards;}
-@keyframes bubbleIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:scale(1)}}
-.chat-header{padding:11px 16px;border-bottom:1px solid rgba(200,169,110,.1);display:flex;align-items:center;justify-content:space-between;}
-.chat-header-info{display:flex;align-items:center;gap:9px;}
-.chat-avatar{width:26px;height:26px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(200,169,110,.4));}
-.chat-header-title{font-size:.7rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);font-weight:700;}
+
+/* ============================================
+   CHAT LATERAL IZQUIERDO
+   ============================================ */
+.chat-panel{position:fixed;top:0;left:0;width:var(--chat-w);height:100vh;background:rgba(11,11,11,.97);border-right:1px solid rgba(200,169,110,.2);z-index:199;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .4s cubic-bezier(.4,0,.2,1),border-color .4s ease,background .4s ease;backdrop-filter:blur(12px);}
+.chat-panel.open{transform:translateX(0);}
+.chat-panel.theme-sensei{border-color:rgba(200,169,110,.2);background:rgba(11,11,11,.97);}
+.chat-panel.theme-nova{border-color:rgba(74,184,255,.2);background:rgba(8,12,20,.97);}
+.chat-header{padding:14px 18px;border-bottom:1px solid rgba(200,169,110,.1);display:flex;align-items:center;justify-content:space-between;transition:border-color .4s ease;}
+.theme-nova .chat-header{border-color:rgba(74,184,255,.1);}
+.chat-header-info{display:flex;align-items:center;gap:10px;}
+.chat-avatar{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(200,169,110,.4));transition:filter .4s ease;}
+.theme-nova .chat-avatar{filter:drop-shadow(0 0 5px rgba(74,184,255,.4));}
+.chat-header-title{font-size:.72rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);font-weight:700;transition:color .4s ease;}
+.theme-nova .chat-header-title{color:var(--blue);}
 .chat-header-sub{font-size:.58rem;color:var(--ash);letter-spacing:1px;}
 .chat-actions{display:flex;gap:6px;}
-.chat-action-btn{background:none;border:none;color:var(--ash);cursor:none;font-size:.78rem;padding:4px;transition:color .3s;}
+.chat-action-btn{background:none;border:none;color:var(--ash);cursor:none;font-size:.82rem;padding:4px;transition:color .3s;}
 .chat-action-btn:hover{color:var(--craft);}
-.chat-messages{flex:1;overflow-y:auto;padding:13px;display:flex;flex-direction:column;gap:8px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;min-height:280px;}
-.chat-messages::-webkit-scrollbar{width:6px;}
+.theme-nova .chat-action-btn:hover{color:var(--blue);}
+.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;}
+.chat-messages::-webkit-scrollbar{width:5px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--charcoal);border-radius:3px;}
-.msg{max-width:88%;padding:8px 12px;font-size:.78rem;line-height:1.6;color:var(--silver);word-wrap:break-word;}
-.msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:0 10px 10px 10px;align-self:flex-start;}
-.msg-ai.nova{background:rgba(74,184,255,.05);border-color:rgba(74,184,255,.12);}
-.msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:10px 0 10px 10px;align-self:flex-end;color:var(--white);}
-.msg-error{background:rgba(255,80,80,.08);border-color:rgba(255,80,80,.2);color:#ff8080;}
-.msg-typing{display:flex;gap:4px;padding:10px 13px;align-items:center;}
+.msg{max-width:88%;padding:10px 14px;font-size:.8rem;line-height:1.6;color:var(--silver);word-wrap:break-word;animation:msgIn .3s ease forwards;}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:0 12px 12px 12px;align-self:flex-start;transition:background .4s ease,border-color .4s ease;}
+.theme-nova .msg-ai{background:rgba(74,184,255,.05);border-color:rgba(74,184,255,.12);}
+.msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px 0 12px 12px;align-self:flex-end;color:var(--white);}
+.msg-error{background:rgba(255,80,80,.08)!important;border-color:rgba(255,80,80,.2)!important;color:#ff8080;}
+.msg-typing{display:flex;gap:4px;padding:12px 14px;align-items:center;}
 .typing-dot{width:5px;height:5px;border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite;}
 .typing-dot.gold{background:var(--craft);}
 .typing-dot.blue{background:var(--blue);}
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes typingBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
-.chat-input-area{padding:9px;border-top:1px solid rgba(200,169,110,.1);display:flex;gap:6px;}
-.chat-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);color:var(--white);padding:8px 12px;font-family:'Rajdhani',sans-serif;font-size:.82rem;outline:none;transition:border-color .3s;}
+.chat-input-area{padding:12px;border-top:1px solid rgba(200,169,110,.1);display:flex;gap:8px;position:relative;transition:border-color .4s ease;}
+.theme-nova .chat-input-area{border-color:rgba(74,184,255,.1);}
+.chat-mascot-rest{position:absolute;bottom:14px;left:14px;width:40px;height:40px;pointer-events:none;animation:mascotBreathe 3s ease-in-out infinite;z-index:1;}
+.chat-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);color:var(--white);padding:10px 14px 10px 58px;font-family:'Rajdhani',sans-serif;font-size:.84rem;outline:none;transition:border-color .3s,background .4s ease;border-radius:4px;}
+.theme-nova .chat-input{border-color:rgba(74,184,255,.12);}
 .chat-input:focus{border-color:rgba(200,169,110,.35);}
+.theme-nova .chat-input:focus{border-color:rgba(74,184,255,.35);}
 .chat-input::placeholder{color:var(--smoke);}
 .chat-input:disabled{opacity:.5;cursor:not-allowed;}
-.chat-send{background:var(--craft);border:none;color:var(--black);padding:0 13px;font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;cursor:none;transition:background .3s;}
+.chat-send{background:var(--craft);border:none;color:var(--black);padding:0 16px;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:700;cursor:none;transition:background .3s;border-radius:4px;}
 .chat-send:hover{background:var(--craft-light);}
+.theme-nova .chat-send{background:var(--blue);}
+.theme-nova .chat-send:hover{background:#6ccaff;}
 .chat-send:disabled{background:var(--smoke);cursor:not-allowed;}
-.reveal{opacity:0;transform:translateY(26px);transition:opacity .8s ease,transform .8s ease;}
-.reveal.visible{opacity:1;transform:translateY(0);}
-@media(max-width:768px){nav{padding:14px 20px;}.nav-links{display:none;}.hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}.stats-bar{grid-template-columns:repeat(2,1fr);}.divider{padding:0 20px;}footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}.chat-panel{width:calc(100% - 20px);right:10px;bottom:10px;max-height:70vh;}}
+
+/* ============================================
+   REVEAL CON BLUR
+   ============================================ */
+.reveal{opacity:0;transform:translateY(26px);filter:blur(4px);transition:opacity .8s ease,transform .8s ease,filter .8s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);filter:blur(0);}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media(max-width:768px){
+  nav{padding:14px 20px;}
+  .nav-links{display:none;}
+  .hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}
+  .stats-bar{grid-template-columns:repeat(2,1fr);}
+  .divider{padding:0 20px;}
+  footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}
+  .chat-panel{width:100%;--chat-w:100%;}
+  .mascot{width:55px;height:55px;}
+}
 </style>
 </head>
 <body>
-<div class="cursor" id="cursor"></div>
-<div class="cursor-ring" id="cursorRing"></div>
-<div class="hero-bg"></div>
+
+<!-- CURSOR PINCEL DIGITAL -->
+<div class="cursor-brush idle" id="cursorBrush">
+  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+    <path d="M3 1C3 1 2 3 2 5C2 7 3.5 8 4 9C4.5 10 4 14 3.5 17C3 20 5 22 7 22C9 22 10 20 10 18C10 16 9 13 8.5 11C8 9 9.5 7 11 5C12.5 3 14 2 14 2C14 2 10 0 7 0C5 0 3 1 3 1Z" fill="#c8a96e"/>
+    <circle cx="4" cy="20" r="1.2" fill="#c8a96e" opacity="0.6"/>
+  </svg>
+</div>
+
+<div class="hero-bg" id="heroBg"></div>
 <canvas id="starsCanvas"></canvas>
-<img class="mascot-fly sensei-fly" src="sensei.png" onclick="toggleChat()" title="Habla con Sensei">
-<img class="mascot-fly nova-fly" src="nova.png" onclick="toggleChat()" title="Habla con Nova">
+
+<!-- MASCOTAS INTELIGENTES -->
+<img class="mascot sensei-mascot" id="mascotSensei" src="sensei.png" title="Arrastra o haz clic para hablar con Sensei">
+<img class="mascot nova-mascot" id="mascotNova" src="nova.png" title="Arrastra o haz clic para hablar con Nova">
 
 <nav>
   <div class="nav-logo">Kodami<span>Academy</span></div>
@@ -168,7 +251,7 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
     <p class="hero-desc">Juegos, libros, videos, documentos y audio educativo. Aprende cualquier materia a través del desafío y la estrategia.</p>
     <div class="hero-btns">
       <button class="btn-primary" onclick="document.getElementById('recursos').scrollIntoView({behavior:'smooth'})"><span>⚔ Explorar Recursos</span></button>
-      <button class="btn-secondary" onclick="toggleChat()">Hablar con Sensei</button>
+      <button class="btn-secondary" onclick="openChat('sensei')">Hablar con Sensei</button>
     </div>
   </div>
 </section>
@@ -230,7 +313,8 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
   <p class="footer-text">Educación gratuita · Acceso público · Hecho con ⚔ e IA</p>
 </footer>
 
-<div class="chat-panel" id="chatPanel">
+<!-- CHAT LATERAL IZQUIERDO -->
+<div class="chat-panel theme-sensei" id="chatPanel">
   <div class="chat-header">
     <div class="chat-header-info">
       <img class="chat-avatar" id="chatAvatar" src="sensei.png" alt="Sensei">
@@ -241,431 +325,526 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
     </div>
     <div class="chat-actions">
       <button class="chat-action-btn" onclick="clearChat()" title="Limpiar chat">🗑</button>
-      <button class="chat-action-btn" onclick="toggleChat()" title="Cerrar">✕</button>
+      <button class="chat-action-btn" onclick="closeChat()" title="Cerrar">✕</button>
     </div>
   </div>
   <div class="chat-messages" id="chatMessages">
     <div class="msg msg-ai">¡Bienvenido a KodamiAcademy! 🦝⚔️ Soy <strong>Sensei</strong>. Puedo ayudarte a encontrar recursos, explicar temas o buscar información. ¿Por dónde empezamos?</div>
   </div>
   <div class="chat-input-area">
-    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." maxlength="2000" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMsg();}">
+    <img class="chat-mascot-rest" id="chatMascotRest" src="sensei.png" alt="">
+    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." maxlength="2000" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
     <button class="chat-send" id="chatSendBtn" onclick="sendMsg()">→</button>
   </div>
 </div>
 
 <script>
 // ============================================
-// CURSOR PERSONALIZADO
+// CURSOR PINCEL DIGITAL
 // ============================================
-const cur = document.getElementById('cursor');
-const ring = document.getElementById('cursorRing');
-let mx = 0, my = 0, rx = 0, ry = 0;
+const brush = document.getElementById('cursorBrush');
+let mouseX = 0, mouseY = 0, brushX = 0, brushY = 0;
+let isDraggingMascot = false;
+let currentCursorState = 'idle';
 
-document.addEventListener('mousemove', e => {
-  mx = e.clientX;
-  my = e.clientY;
-  cur.style.left = mx + 'px';
-  cur.style.top = my + 'px';
+document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+
+(function animateBrush() {
+  brushX += (mouseX - brushX) * 0.18;
+  brushY += (mouseY - brushY) * 0.18;
+  brush.style.left = (brushX - 3) + 'px';
+  brush.style.top = (brushY - 3) + 'px';
+  requestAnimationFrame(animateBrush);
+})();
+
+const interactiveSel = 'a,button,.materia-tab,.pill,.card-btn,.chat-send,.chat-action-btn,.search-btn,.mascot,[onclick]';
+const textSel = 'input,textarea,.chat-input,.search-input';
+
+document.addEventListener('mouseover', e => {
+  if (isDraggingMascot) return;
+  if (e.target.closest(textSel)) setCursorState('text-mode');
+  else if (e.target.closest(interactiveSel)) setCursorState('hovering');
+  else setCursorState('idle');
+});
+document.addEventListener('mouseout', e => {
+  if (isDraggingMascot) return;
+  if (!e.relatedTarget || !e.relatedTarget.closest) setCursorState('idle');
 });
 
-(function loop() {
-  rx += (mx - rx) * 0.12;
-  ry += (my - ry) * 0.12;
-  ring.style.left = rx + 'px';
-  ring.style.top = ry + 'px';
-  requestAnimationFrame(loop);
-})();
+function setCursorState(state) {
+  if (currentCursorState === state) return;
+  brush.classList.remove(currentCursorState);
+  brush.classList.add(state);
+  currentCursorState = state;
+}
+function setCursorDragging(d) {
+  isDraggingMascot = d;
+  d ? setCursorState('dragging') : setCursorState('idle');
+}
+function setCursorTheme(agent) {
+  agent === 'nova' ? brush.classList.add('nova-active') : brush.classList.remove('nova-active');
+}
+
+document.querySelectorAll('input,textarea').forEach(el => {
+  el.addEventListener('focus', () => setCursorState('text-mode'));
+  el.addEventListener('blur', () => setCursorState('idle'));
+});
+
+// ============================================
+// PARALLAX SUAVE EN HERO BG
+// ============================================
+const heroBg = document.getElementById('heroBg');
+document.addEventListener('mousemove', e => {
+  const x = (e.clientX / window.innerWidth - 0.5) * 10;
+  const y = (e.clientY / window.innerHeight - 0.5) * 10;
+  heroBg.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
+});
 
 // ============================================
 // ESTRELLAS Y METEOROS
 // ============================================
-const sc = document.getElementById('starsCanvas');
-const sx = sc.getContext('2d');
-
-function resizeSc() {
-  sc.width = window.innerWidth;
-  sc.height = window.innerHeight;
-}
-resizeSc();
-window.addEventListener('resize', resizeSc);
-
-const stars = Array.from({ length: 100 }, () => ({
-  x: Math.random() * window.innerWidth,
-  y: Math.random() * window.innerHeight,
-  size: Math.random() * 1.2 + 0.2,
-  opacity: Math.random() * 0.6 + 0.1,
-  dir: Math.random() > 0.5 ? 1 : -1
+const sc = document.getElementById('starsCanvas'), sx = sc.getContext('2d');
+function resizeSc() { sc.width = window.innerWidth; sc.height = window.innerHeight; }
+resizeSc(); window.addEventListener('resize', resizeSc);
+const stars = Array.from({length:100}, () => ({
+  x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight,
+  size: Math.random()*1.2+.2, opacity: Math.random()*.6+.1, dir: Math.random()>.5?1:-1
 }));
-
 const meteors = [];
 function spawnMeteor() {
-  if (meteors.length < 5) {
-    meteors.push({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight * 0.3,
-      len: Math.random() * 140 + 60,
-      speed: Math.random() * 7 + 4,
-      opacity: 1,
-      angle: Math.PI / 4
-    });
-  }
+  if (meteors.length < 5) meteors.push({
+    x: Math.random()*window.innerWidth, y: Math.random()*window.innerHeight*.3,
+    len: Math.random()*140+60, speed: Math.random()*7+4, opacity: 1, angle: Math.PI/4
+  });
 }
 setInterval(spawnMeteor, 2500);
-
 function drawStars() {
-  sx.clearRect(0, 0, sc.width, sc.height);
+  sx.clearRect(0,0,sc.width,sc.height);
   stars.forEach(s => {
-    s.opacity += 0.003 * s.dir;
-    if (s.opacity >= 0.8 || s.opacity <= 0.05) s.dir *= -1;
-    sx.beginPath();
-    sx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-    sx.fillStyle = `rgba(200,169,110,${s.opacity})`;
-    sx.fill();
+    s.opacity += .003*s.dir;
+    if (s.opacity>=.8||s.opacity<=.05) s.dir *= -1;
+    sx.beginPath(); sx.arc(s.x,s.y,s.size,0,Math.PI*2);
+    sx.fillStyle = `rgba(200,169,110,${s.opacity})`; sx.fill();
   });
-  for (let i = meteors.length - 1; i >= 0; i--) {
-    const m = meteors[i];
-    const gx = sx.createLinearGradient(
-      m.x, m.y,
-      m.x - Math.cos(m.angle) * m.len,
-      m.y - Math.sin(m.angle) * m.len
-    );
-    gx.addColorStop(0, `rgba(255,220,150,${m.opacity})`);
-    gx.addColorStop(1, 'rgba(200,169,110,0)');
-    sx.beginPath();
-    sx.moveTo(m.x, m.y);
-    sx.lineTo(m.x - Math.cos(m.angle) * m.len, m.y - Math.sin(m.angle) * m.len);
-    sx.strokeStyle = gx;
-    sx.lineWidth = 2;
-    sx.stroke();
-    m.x += Math.cos(m.angle) * m.speed;
-    m.y += Math.sin(m.angle) * m.speed;
-    m.opacity -= 0.018;
-    if (m.opacity <= 0 || m.x > sc.width + 100 || m.y > sc.height + 100) {
-      meteors.splice(i, 1);
-    }
+  for (let i=meteors.length-1;i>=0;i--) {
+    const m=meteors[i];
+    const gx=sx.createLinearGradient(m.x,m.y,m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
+    gx.addColorStop(0,`rgba(255,220,150,${m.opacity})`); gx.addColorStop(1,'rgba(200,169,110,0)');
+    sx.beginPath(); sx.moveTo(m.x,m.y);
+    sx.lineTo(m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
+    sx.strokeStyle=gx; sx.lineWidth=2; sx.stroke();
+    m.x+=Math.cos(m.angle)*m.speed; m.y+=Math.sin(m.angle)*m.speed; m.opacity-=.018;
+    if (m.opacity<=0||m.x>sc.width+100||m.y>sc.height+100) meteors.splice(i,1);
   }
   requestAnimationFrame(drawStars);
 }
 drawStars();
 
 // ============================================
+// MASCOTAS INTELIGENTES: WAYPOINTS + DRAG
+// ============================================
+const WAYPOINTS = [
+  {x:0,y:0},{x:0.5,y:0},{x:1,y:0},
+  {x:1,y:0.5},{x:1,y:1},{x:0.5,y:1},
+  {x:0,y:1},{x:0,y:0.5}
+];
+const MASCOT_SIZE = 75;
+const EDGE_MARGIN = 10;
+
+class MascotController {
+  constructor(el, agent) {
+    this.el = el;
+    this.agent = agent;
+    this.x = Math.random() * (window.innerWidth - MASCOT_SIZE);
+    this.y = Math.random() * (window.innerHeight - MASCOT_SIZE);
+    this.targetX = this.x;
+    this.targetY = this.y;
+    this.state = 'idle'; // idle | moving | dragging | in-chat | returning
+    this.facingRight = true;
+    this.pauseTimer = 0;
+    this.speed = 1.5 + Math.random();
+    this.dragOffsetX = 0;
+    this.dragOffsetY = 0;
+    
+    this.el.style.left = this.x + 'px';
+    this.el.style.top = this.y + 'px';
+    
+    this.pickNextWaypoint();
+    this.setupDrag();
+    this.el.addEventListener('click', () => {
+      if (this.state !== 'dragging' && this.state !== 'returning') openChat(this.agent);
+    });
+  }
+  
+  pickNextWaypoint() {
+    const wp = WAYPOINTS[Math.floor(Math.random() * WAYPOINTS.length)];
+    const vw = window.innerWidth, vh = window.innerHeight;
+    this.targetX = wp.x * (vw - MASCOT_SIZE - EDGE_MARGIN*2) + EDGE_MARGIN;
+    this.targetY = wp.y * (vh - MASCOT_SIZE - EDGE_MARGIN*2) + EDGE_MARGIN;
+    this.state = 'moving';
+  }
+  
+  update() {
+    if (this.state === 'in-chat' || this.state === 'dragging') return;
+    
+    if (this.state === 'idle') {
+      this.pauseTimer--;
+      if (this.pauseTimer <= 0) this.pickNextWaypoint();
+      return;
+    }
+    
+    const dx = this.targetX - this.x;
+    const dy = this.targetY - this.y;
+    const dist = Math.sqrt(dx*dx + dy*dy);
+    
+    if (dist < 3) {
+      this.x = this.targetX;
+      this.y = this.targetY;
+      this.state = 'idle';
+      this.pauseTimer = 60 + Math.random() * 120;
+    } else {
+      const moveSpeed = this.state === 'returning' ? 4 : this.speed;
+      this.x += (dx / dist) * moveSpeed;
+      this.y += (dy / dist) * moveSpeed;
+      
+      const shouldFaceRight = dx > 0;
+      if (shouldFaceRight !== this.facingRight) {
+        this.facingRight = shouldFaceRight;
+        this.el.style.transform = shouldFaceRight ? 'scaleX(1)' : 'scaleX(-1)';
+      }
+    }
+    
+    this.el.style.left = this.x + 'px';
+    this.el.style.top = this.y + 'px';
+  }
+  
+  setupDrag() {
+    let startX, startY, hasMoved;
+    
+    const onDown = (e) => {
+      if (this.state === 'in-chat') return;
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      this.dragOffsetX = clientX - this.x;
+      this.dragOffsetY = clientY - this.y;
+      startX = clientX; startY = clientY; hasMoved = false;
+      this.state = 'dragging';
+      this.el.classList.add('dragging-mascot');
+      setCursorDragging(true);
+      
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      document.addEventListener('touchmove', onMove, {passive:false});
+      document.addEventListener('touchend', onUp);
+    };
+    
+    const onMove = (e) => {
+      e.preventDefault();
+      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+      if (Math.abs(clientX-startX)>5 || Math.abs(clientY-startY)>5) hasMoved = true;
+      this.x = Math.max(0, Math.min(window.innerWidth-MASCOT_SIZE, clientX - this.dragOffsetX));
+      this.y = Math.max(0, Math.min(window.innerHeight-MASCOT_SIZE, clientY - this.dragOffsetY));
+      this.el.style.left = this.x + 'px';
+      this.el.style.top = this.y + 'px';
+    };
+    
+    const onUp = (e) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      document.removeEventListener('touchmove', onMove);
+      document.removeEventListener('touchend', onUp);
+      this.el.classList.remove('dragging-mascot');
+      setCursorDragging(false);
+      
+      if (!hasMoved) {
+        // Fue un clic, no un drag → abrir chat
+        this.state = 'idle';
+        return; // El evento click se encarga
+      }
+      
+      // Encontrar waypoint más cercano al punto de liberación
+      let closestDist = Infinity, closestWp = WAYPOINTS[0];
+      const vw = window.innerWidth, vh = window.innerHeight;
+      WAYPOINTS.forEach(wp => {
+        const wx = wp.x*(vw-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
+        const wy = wp.y*(vh-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
+        const d = Math.sqrt((this.x-wx)**2+(this.y-wy)**2);
+        if (d < closestDist) { closestDist=d; closestWp=wp; }
+      });
+      
+      this.targetX = closestWp.x*(vw-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
+      this.targetY = closestWp.y*(vh-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
+      this.state = 'returning';
+    };
+    
+    this.el.addEventListener('mousedown', onDown);
+    this.el.addEventListener('touchstart', onDown, {passive:false});
+  }
+  
+  enterChat() {
+    this.state = 'in-chat';
+    this.el.classList.add('in-chat');
+  }
+  
+  exitChat() {
+    this.el.classList.remove('in-chat');
+    this.state = 'returning';
+    this.pickNextWaypoint();
+  }
+}
+
+const senseiCtrl = new MascotController(document.getElementById('mascotSensei'), 'sensei');
+const novaCtrl = new MascotController(document.getElementById('mascotNova'), 'nova');
+
+function updateMascots() {
+  senseiCtrl.update();
+  novaCtrl.update();
+  requestAnimationFrame(updateMascots);
+}
+updateMascots();
+
+// ============================================
+// TILT 3D EN TARJETAS DE RECURSOS
+// ============================================
+document.addEventListener('mousemove', e => {
+  document.querySelectorAll('.resource-card').forEach(card => {
+    const rect = card.getBoundingClientRect();
+    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
+      const x = (e.clientX - rect.left) / rect.width - 0.5;
+      const y = (e.clientY - rect.top) / rect.height - 0.5;
+      card.style.transform = `perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-4px)`;
+    } else {
+      card.style.transform = '';
+    }
+  });
+});
+
+// ============================================
 // RECURSOS EDUCATIVOS
 // ============================================
 const resources = [
-  { id: 1, title: 'Duelo de Fracciones', cat: 'juego', desc: 'Batalla de fracciones equivalentes en tiempo real.', icon: '⚔️', badge: 'web', badgeClass: 'badge-web', level: 2, link: '#' },
-  { id: 2, title: 'Geometría Ninja', cat: 'juego', desc: 'Calcula áreas y perímetros contra el tiempo.', icon: '📐', badge: 'web', badgeClass: 'badge-web', level: 3, link: '#' },
-  { id: 3, title: 'Álgebra Samurai', cat: 'juego', desc: 'Resuelve ecuaciones para desbloquear el siguiente nivel.', icon: '🀄', badge: 'apk', badgeClass: 'badge-apk', level: 3, link: '#' },
-  { id: 4, title: 'Ruta de la Lógica', cat: 'juego', desc: 'Puzzles de razonamiento lógico y patrones numéricos.', icon: '🧩', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
-  { id: 5, title: 'Aritmética Veloz', cat: 'juego', desc: 'Operaciones básicas contra el reloj.', icon: '⚡', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
-  { id: 6, title: 'Imperio de las Tablas', cat: 'juego', desc: 'Domina las tablas de multiplicar con cartas.', icon: '🃏', badge: 'zip', badgeClass: 'badge-zip', level: 2, link: '#' },
-  { id: 7, title: 'Guía de Álgebra', cat: 'libro', desc: 'Manual completo con ejercicios resueltos.', icon: '📚', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
-  { id: 8, title: 'Introducción a la Geometría', cat: 'libro', desc: 'Geometría euclidiana para nivel medio.', icon: '📖', badge: 'pdf', badgeClass: 'badge-pdf', level: 1, link: '#' },
-  { id: 9, title: 'Clase: Fracciones desde Cero', cat: 'video', desc: 'Video explicativo completo sobre fracciones.', icon: '🎬', badge: 'video', badgeClass: 'badge-video', level: 1, link: '#' },
-  { id: 10, title: 'Podcast: Historia de Pi', cat: 'audio', desc: 'La fascinante historia del número Pi.', icon: '🎵', badge: 'audio', badgeClass: 'badge-audio', level: 1, link: '#' },
-  { id: 11, title: 'Formulario de Geometría', cat: 'documento', desc: 'Todas las fórmulas geométricas en un documento.', icon: '📄', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
-  { id: 12, title: 'Ejercicios de Estadística', cat: 'documento', desc: 'Hoja de ejercicios con estadística descriptiva.', icon: '📊', badge: 'zip', badgeClass: 'badge-zip', level: 3, link: '#' },
+  {id:1,title:'Duelo de Fracciones',cat:'juego',desc:'Batalla de fracciones equivalentes en tiempo real.',icon:'⚔️',badge:'web',badgeClass:'badge-web',level:2,link:'#'},
+  {id:2,title:'Geometría Ninja',cat:'juego',desc:'Calcula áreas y perímetros contra el tiempo.',icon:'📐',badge:'web',badgeClass:'badge-web',level:3,link:'#'},
+  {id:3,title:'Álgebra Samurai',cat:'juego',desc:'Resuelve ecuaciones para desbloquear el siguiente nivel.',icon:'🀄',badge:'apk',badgeClass:'badge-apk',level:3,link:'#'},
+  {id:4,title:'Ruta de la Lógica',cat:'juego',desc:'Puzzles de razonamiento lógico y patrones numéricos.',icon:'🧩',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
+  {id:5,title:'Aritmética Veloz',cat:'juego',desc:'Operaciones básicas contra el reloj.',icon:'⚡',badge:'web',badgeClass:'badge-web',level:1,link:'#'},
+  {id:6,title:'Imperio de las Tablas',cat:'juego',desc:'Domina las tablas de multiplicar con cartas.',icon:'🃏',badge:'zip',badgeClass:'badge-zip',level:2,link:'#'},
+  {id:7,title:'Guía de Álgebra',cat:'libro',desc:'Manual completo con ejercicios resueltos.',icon:'📚',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
+  {id:8,title:'Introducción a la Geometría',cat:'libro',desc:'Geometría euclidiana para nivel medio.',icon:'📖',badge:'pdf',badgeClass:'badge-pdf',level:1,link:'#'},
+  {id:9,title:'Clase: Fracciones desde Cero',cat:'video',desc:'Video explicativo completo sobre fracciones.',icon:'🎬',badge:'video',badgeClass:'badge-video',level:1,link:'#'},
+  {id:10,title:'Podcast: Historia de Pi',cat:'audio',desc:'La fascinante historia del número Pi.',icon:'🎵',badge:'audio',badgeClass:'badge-audio',level:1,link:'#'},
+  {id:11,title:'Formulario de Geometría',cat:'documento',desc:'Todas las fórmulas geométricas en un documento.',icon:'📄',badge:'pdf',badgeClass:'badge-pdf',level:2,link:'#'},
+  {id:12,title:'Ejercicios de Estadística',cat:'documento',desc:'Hoja de ejercicios con estadística descriptiva.',icon:'📊',badge:'zip',badgeClass:'badge-zip',level:3,link:'#'}
 ];
-
-let currentMateria = 'matematicas';
-let currentCat = 'all';
-
-const materiaInfo = {
-  matematicas: { title: 'Matemáticas', jp: '数学' },
-  ciencias: { title: 'Ciencias', jp: '科学' },
-  historia: { title: 'Historia', jp: '歴史' },
-  geografia: { title: 'Geografía', jp: '地理' },
-  espanol: { title: 'Español', jp: '言語' },
-  arte: { title: 'Arte', jp: '芸術' }
-};
+let currentMateria='matematicas', currentCat='all';
+const materiaInfo={matematicas:{title:'Matemáticas',jp:'数学'},ciencias:{title:'Ciencias',jp:'科学'},historia:{title:'Historia',jp:'歴史'},geografia:{title:'Geografía',jp:'地理'},espanol:{title:'Español',jp:'言語'},arte:{title:'Arte',jp:'芸術'}};
 
 function renderResources(data) {
-  const grid = document.getElementById('resourcesGrid');
-  const cs = document.getElementById('comingSoon');
-  
-  if (currentMateria !== 'matematicas') {
-    grid.style.display = 'none';
-    cs.classList.add('visible');
-    return;
-  }
-  
-  cs.classList.remove('visible');
-  grid.style.display = 'grid';
-  
-  if (data.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;">⚔ No se encontraron recursos</div>';
-    return;
-  }
-  
-  grid.innerHTML = data.map((r, i) => `
-    <div class="resource-card" style="animation-delay:${i * 0.07}s">
-      <div class="card-thumb">
-        <div class="card-icon">${r.icon}</div>
-        <span class="card-badge ${r.badgeClass}">${r.badge}</span>
-      </div>
-      <div class="card-body">
-        <div class="card-category">${r.cat}</div>
-        <div class="card-title">${r.title}</div>
-        <div class="card-desc">${r.desc}</div>
-        <div class="card-footer">
-          <div class="card-level">${[1, 2, 3].map(n => `<div class="level-dot ${n <= r.level ? 'active' : ''}"></div>`).join('')}</div>
-          <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat === 'juego' && r.badge === 'web' ? '▶ Jugar' : '⬇ Abrir'}</button>
-        </div>
-      </div>
-    </div>
+  const grid=document.getElementById('resourcesGrid'), cs=document.getElementById('comingSoon');
+  if (currentMateria!=='matematicas') { grid.style.display='none'; cs.classList.add('visible'); return; }
+  cs.classList.remove('visible'); grid.style.display='grid';
+  if (!data.length) { grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;">⚔ No se encontraron recursos</div>'; return; }
+  grid.innerHTML = data.map((r,i) => `
+    <div class="resource-card" style="animation-delay:${i*.07}s">
+      <div class="card-thumb"><div class="card-icon">${r.icon}</div><span class="card-badge ${r.badgeClass}">${r.badge}</span></div>
+      <div class="card-body"><div class="card-category">${r.cat}</div><div class="card-title">${r.title}</div><div class="card-desc">${r.desc}</div>
+      <div class="card-footer"><div class="card-level">${[1,2,3].map(n=>`<div class="level-dot ${n<=r.level?'active':''}"></div>`).join('')}</div>
+      <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat==='juego'&&r.badge==='web'?'▶ Jugar':'⬇ Abrir'}</button></div></div>
   `).join('');
 }
-
-function switchMateria(mat, el) {
-  currentMateria = mat;
-  currentCat = 'all';
-  document.querySelectorAll('.materia-tab').forEach(t => t.classList.remove('active'));
+function switchMateria(mat,el) {
+  currentMateria=mat; currentCat='all';
+  document.querySelectorAll('.materia-tab').forEach(t=>t.classList.remove('active'));
   el.classList.add('active');
-  document.querySelectorAll('.pill').forEach((p, i) => i === 0 ? p.classList.add('active') : p.classList.remove('active'));
-  const info = materiaInfo[mat] || { title: mat, jp: '' };
-  document.getElementById('sectionTitle').textContent = info.title;
-  document.getElementById('sectionJp').textContent = info.jp;
+  document.querySelectorAll('.pill').forEach((p,i)=>i===0?p.classList.add('active'):p.classList.remove('active'));
+  const info=materiaInfo[mat]||{title:mat,jp:''};
+  document.getElementById('sectionTitle').textContent=info.title;
+  document.getElementById('sectionJp').textContent=info.jp;
   applyFilters();
 }
-
-function filterCat(cat, el) {
-  currentCat = cat;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  applyFilters();
-}
-
+function filterCat(cat,el) { currentCat=cat; document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active')); el.classList.add('active'); applyFilters(); }
 function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  if (currentMateria !== 'matematicas') {
-    renderResources([]);
-    return;
-  }
-  renderResources(resources.filter(r =>
-    (currentCat === 'all' || r.cat === currentCat) &&
-    (q === '' || r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.cat.includes(q))
-  ));
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if (currentMateria!=='matematicas') { renderResources([]); return; }
+  renderResources(resources.filter(r=>(currentCat==='all'||r.cat===currentCat)&&(q===''||r.title.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)||r.cat.includes(q))));
 }
-
 renderResources(resources);
 
 // ============================================
 // CONTADORES ANIMADOS
 // ============================================
-const obsEl = new IntersectionObserver(entries => entries.forEach(e => {
+const obsEl=new IntersectionObserver(entries=>entries.forEach(e=>{
   if (e.isIntersecting) {
     e.target.classList.add('visible');
-    if (e.target.id === 'statsBar') {
-      document.querySelectorAll('[data-target]').forEach(el => {
-        const t = +el.dataset.target;
-        let c = 0;
-        const iv = setInterval(() => {
-          c = Math.min(c + t / 40, t);
-          el.textContent = Math.floor(c);
-          if (c >= t) clearInterval(iv);
-        }, 35);
-      });
-    }
+    if (e.target.id==='statsBar') document.querySelectorAll('[data-target]').forEach(el=>{
+      const t=+el.dataset.target; let c=0;
+      const iv=setInterval(()=>{c=Math.min(c+t/40,t);el.textContent=Math.floor(c);if(c>=t)clearInterval(iv);},35);
+    });
   }
-}), { threshold: 0.1 });
-
-document.querySelectorAll('.reveal').forEach(el => obsEl.observe(el));
+}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obsEl.observe(el));
 
 // ============================================
-// CHAT CON IA - CÓDIGO CORREGIDO Y MEJORADO
+// CHAT LATERAL + INTEGRACIÓN CON MASCOTAS
 // ============================================
-
-// URL del Worker (CAMBIA ESTA URL por la tuya)
 const WORKER_URL = 'https://kodami-chat.kodami-academy24.workers.dev/';
+let chatHistory = [], chatOpen = false, isSending = false, activeAgent = 'sensei';
 
-// Historial de conversación (para mantener contexto)
-let chatHistory = [];
-let chatOpen = false;
-let isSending = false; // Prevenir envíos múltiples
+const chatPanel = document.getElementById('chatPanel');
+const chatAvatar = document.getElementById('chatAvatar');
+const chatName = document.getElementById('chatName');
+const chatSub = document.getElementById('chatSub');
+const chatMascotRest = document.getElementById('chatMascotRest');
 
-function toggleChat() {
-  chatOpen = !chatOpen;
-  document.getElementById('chatPanel').classList.toggle('open', chatOpen);
-  if (chatOpen) {
-    setTimeout(() => document.getElementById('chatInput').focus(), 100);
+function openChat(agent) {
+  if (chatOpen && activeAgent === agent) { closeChat(); return; }
+  
+  activeAgent = agent;
+  chatOpen = true;
+  
+  // Actualizar tema visual
+  chatPanel.className = `chat-panel open theme-${agent}`;
+  setCursorTheme(agent);
+  
+  // Actualizar header y mascota en reposo
+  if (agent === 'nova') {
+    chatAvatar.src = 'nova.png';
+    chatName.textContent = '💙 Nova';
+    chatSub.textContent = 'Exploradora digital';
+    chatMascotRest.src = 'nova.png';
+    novaCtrl.enterChat();
+    senseiCtrl.exitChat();
+  } else {
+    chatAvatar.src = 'sensei.png';
+    chatName.textContent = '⚔ Sensei';
+    chatSub.textContent = 'Guardián del conocimiento';
+    chatMascotRest.src = 'sensei.png';
+    senseiCtrl.enterChat();
+    novaCtrl.exitChat();
   }
+  
+  setTimeout(() => document.getElementById('chatInput').focus(), 300);
 }
+
+function closeChat() {
+  chatOpen = false;
+  chatPanel.classList.remove('open');
+  setCursorTheme('sensei');
+  senseiCtrl.exitChat();
+  novaCtrl.exitChat();
+}
+
+// Compatibilidad con botón antiguo
+function toggleChat() { openChat('sensei'); }
 
 function clearChat() {
-  if (!confirm('¿Limpiar todo el historial de chat?')) return;
+  if (!confirm('¿Limpiar historial?')) return;
   chatHistory = [];
-  const msgs = document.getElementById('chatMessages');
-  msgs.innerHTML = '<div class="msg msg-ai">¡Chat limpio! 🦝⚔️ ¿En qué puedo ayudarte ahora?</div>';
+  document.getElementById('chatMessages').innerHTML = `<div class="msg msg-ai">¡Chat limpio! ${activeAgent==='nova'?'💙🚀':'🦝⚔️'} ¿En qué puedo ayudarte?</div>`;
 }
 
-// Sanitización básica para prevenir XSS
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
+function escapeHtml(t) { const d=document.createElement('div'); d.textContent=t; return d.innerHTML; }
 
-function addMsg(text, isAi, isNova = false, isError = false) {
-  const msgs = document.getElementById('chatMessages');
-  const msgDiv = document.createElement('div');
-  
-  let className = 'msg';
-  if (isAi) {
-    className += ' msg-ai' + (isNova ? ' nova' : '');
+function addMsg(text, isAi, isError=false) {
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  let cls='msg';
+  if (isAi) cls += ' msg-ai'; else cls += ' msg-user';
+  if (isError) cls += ' msg-error';
+  div.className=cls;
+  if (isAi && !isError) {
+    const badge = activeAgent==='nova'
+      ? '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--blue);opacity:.7;display:block;margin-bottom:3px;">💙 Nova</span>'
+      : '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--craft);opacity:.7;display:block;margin-bottom:3px;">⚔ Sensei</span>';
+    div.innerHTML = badge + text;
   } else {
-    className += ' msg-user';
+    div.innerHTML = text;
   }
-  if (isError) {
-    className += ' msg-error';
-  }
-  
-  msgDiv.className = className;
-  msgDiv.innerHTML = text;
-  msgs.appendChild(msgDiv);
+  msgs.appendChild(div);
   msgs.scrollTop = msgs.scrollHeight;
-  
-  return msgDiv;
 }
 
 async function sendMsg() {
-  // Prevenir envíos múltiples o con campo vacío
   if (isSending) return;
-  
-  const input = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
-  const msg = input.value.trim();
-  
+  const input=document.getElementById('chatInput'), sendBtn=document.getElementById('chatSendBtn');
+  const msg=input.value.trim();
   if (!msg) return;
-  if (msg.length > 2000) {
-    addMsg('⚠️ El mensaje es demasiado largo (máximo 2000 caracteres)', true, false, true);
-    return;
-  }
+  if (msg.length>2000) { addMsg('⚠️ Máximo 2000 caracteres',true,true); return; }
   
-  // Deshabilitar input mientras se procesa
-  isSending = true;
-  input.value = '';
-  input.disabled = true;
-  sendBtn.disabled = true;
+  isSending=true; input.value=''; input.disabled=true; sendBtn.disabled=true;
+  addMsg(escapeHtml(msg),false);
+  chatHistory.push({role:'user',content:msg});
   
-  // Mostrar mensaje del usuario
-  addMsg(escapeHtml(msg), false);
-  
-  // Guardar en historial
-  chatHistory.push({ role: 'user', content: msg });
-  
-  // Indicador de escritura
-  const tid = 't' + Date.now();
-  const msgs = document.getElementById('chatMessages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'msg msg-ai msg-typing';
-  typingDiv.id = tid;
-  typingDiv.innerHTML = '<div class="typing-dot gold"></div><div class="typing-dot gold"></div><div class="typing-dot gold"></div>';
-  msgs.appendChild(typingDiv);
-  msgs.scrollTop = msgs.scrollHeight;
+  const tid='t'+Date.now();
+  const msgs=document.getElementById('chatMessages');
+  const typing=document.createElement('div');
+  typing.className='msg msg-ai msg-typing'; typing.id=tid;
+  const dotColor = activeAgent==='nova'?'blue':'gold';
+  typing.innerHTML=`<div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div>`;
+  msgs.appendChild(typing); msgs.scrollTop=msgs.scrollHeight;
   
   try {
-    // Timeout de 30 segundos
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-    
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: msg,
-        history: chatHistory.slice(-10) // Solo últimos 10 mensajes
-      }),
-      signal: controller.signal
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),30000);
+    const res=await fetch(WORKER_URL,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:msg,history:chatHistory.slice(-10)}),
+      signal:controller.signal
     });
+    clearTimeout(timeout);
     
-    clearTimeout(timeoutId);
-    
-    // VERIFICAR QUE LA RESPUESTA SEA EXITOSA
     if (!res.ok) {
-      let errorMsg = `Error del servidor (${res.status})`;
-      try {
-        const errorData = await res.json();
-        errorMsg = errorData.error || errorMsg;
-      } catch (e) {
-        const errorText = await res.text();
-        if (errorText) errorMsg += ': ' + errorText;
+      let errText=''; try{const ed=await res.json();errText=ed.error||'';}catch(e){errText=await res.text();}
+      throw new Error(errText||`Error ${res.status}`);
+    }
+    
+    const rawText=await res.text();
+    if (!rawText||!rawText.trim()) throw new Error('Respuesta vacía');
+    let data; try{data=JSON.parse(rawText);}catch(e){throw new Error('Respuesta inválida');}
+    if (data.error) throw new Error(data.error.message||data.error);
+    
+    const reply=data.choices?.[0]?.message?.content;
+    if (!reply||!reply.trim()) throw new Error('Sin respuesta');
+    
+    document.getElementById(tid)?.remove();
+    
+    // Detectar agente por contenido
+    const detectedAgent = reply.toLowerCase().includes('nova')||reply.includes('💙')||reply.includes('🚀')?'nova':'sensei';
+    if (detectedAgent !== activeAgent) {
+      activeAgent = detectedAgent;
+      chatPanel.className = `chat-panel open theme-${activeAgent}`;
+      setCursorTheme(activeAgent);
+      if (activeAgent==='nova') {
+        chatAvatar.src='nova.png'; chatName.textContent='💙 Nova'; chatSub.textContent='Exploradora digital';
+        chatMascotRest.src='nova.png'; novaCtrl.enterChat(); senseiCtrl.exitChat();
+      } else {
+        chatAvatar.src='sensei.png'; chatName.textContent='⚔ Sensei'; chatSub.textContent='Guardián del conocimiento';
+        chatMascotRest.src='sensei.png'; senseiCtrl.enterChat(); novaCtrl.exitChat();
       }
-      throw new Error(errorMsg);
     }
     
-    // LEER LA RESPUESTA COMO TEXTO PRIMERO
-    const responseText = await res.text();
-    
-    // VERIFICAR QUE NO ESTÉ VACÍA
-    if (!responseText || responseText.trim() === '') {
-      throw new Error('Respuesta vacía del servidor');
-    }
-    
-    // PARSEAR JSON DE FORMA SEGURA
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Respuesta no es JSON válido:', responseText);
-      throw new Error('Respuesta inválida del servidor');
-    }
-    
-    // VERIFICAR SI HAY ERROR EN LA RESPUESTA
-    if (data.error) {
-      throw new Error(data.error.message || data.error || 'Error de la IA');
-    }
-    
-    // EXTRAER LA RESPUESTA
-    const reply = data.choices?.[0]?.message?.content;
-    
-    if (!reply || reply.trim() === '') {
-      throw new Error('La IA no generó una respuesta');
-    }
-    
-    // Eliminar indicador de escritura
+    chatHistory.push({role:'assistant',content:reply});
+    addMsg(escapeHtml(reply).replace(/\n/g,'<br>'),true,false);
+  } catch(e) {
+    console.error('Chat error:',e);
     document.getElementById(tid)?.remove();
-    
-    // Guardar respuesta en historial
-    chatHistory.push({ role: 'assistant', content: reply });
-    
-    // Mostrar respuesta (convertir saltos de línea a <br>)
-    const formattedReply = escapeHtml(reply).replace(/\n/g, '<br>');
-    addMsg(formattedReply, true, false, false);
-    
-  } catch (e) {
-    console.error('Error en el chat:', e);
-    document.getElementById(tid)?.remove();
-    
-    // Remover el último mensaje del usuario del historial si falló
-    if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-      chatHistory.pop();
-    }
-    
-    let errorMsg = '⚔️ ';
-    if (e.name === 'AbortError') {
-      errorMsg += 'La respuesta tardó demasiado. Intenta de nuevo.';
-    } else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-      errorMsg += 'Error de conexión. Verifica tu internet.';
-    } else {
-      errorMsg += escapeHtml(e.message);
-    }
-    
-    addMsg(errorMsg, true, false, true);
+    if (chatHistory.length&&chatHistory[chatHistory.length-1].role==='user') chatHistory.pop();
+    let errMsg='⚔️ ';
+    if (e.name==='AbortError') errMsg+='Tiempo agotado.';
+    else if (e.message.includes('Failed to fetch')) errMsg+='Error de conexión.';
+    else errMsg+=escapeHtml(e.message);
+    addMsg(errMsg,true,true);
   } finally {
-    // Rehabilitar input
-    isSending = false;
-    input.disabled = false;
-    sendBtn.disabled = false;
-    input.focus();
+    isSending=false; input.disabled=false; sendBtn.disabled=false; input.focus();
   }
 }
 
-// ============================================
-// SOPORTE PARA MÓVILES (mostrar cursor normal)
-// ============================================
+// Soporte móvil
 if ('ontouchstart' in window) {
-  document.body.style.cursor = 'auto';
-  cur.style.display = 'none';
-  ring.style.display = 'none';
+  document.body.style.cursor='auto';
+  brush.style.display='none';
 }
 </script>
 </body>
