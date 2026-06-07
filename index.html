@@ -2,52 +2,150 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>KodamiAcademy — La Arena del Saber</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
 <style>
-:root{--black:#0a0a0a;--deep:#111;--dark:#1a1a1a;--charcoal:#2a2a2a;--smoke:#3a3a3a;--ash:#888;--silver:#c0c0c0;--white:#f0f0f0;--craft:#c8a96e;--craft-light:#e8c87e;--blue:#4ab8ff;--chat-w:380px;}
+:root{
+  --black:#0a0a0a;--deep:#111;--dark:#1a1a1a;--charcoal:#2a2a2a;
+  --smoke:#3a3a3a;--ash:#888;--silver:#c0c0c0;--white:#f0f0f0;
+  --craft:#c8a96e;--craft-light:#e8c87e;--blue:#4ab8ff;--chat-w:380px;
+}
 *{margin:0;padding:0;box-sizing:border-box;}
 html{scroll-behavior:smooth;}
-body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;cursor:none;}
+body{background:var(--black);color:var(--white);font-family:'Rajdhani',sans-serif;overflow-x:hidden;}
 
-/* CURSOR PINCEL DIGITAL */
-.cursor-brush{position:fixed;top:0;left:0;width:28px;height:28px;pointer-events:none;z-index:10000;transform-origin:3px 3px;transition:transform .15s ease,filter .2s ease,opacity .2s ease;will-change:transform,left,top;}
-.cursor-brush svg{width:100%;height:100%;filter:drop-shadow(0 0 3px rgba(200,169,110,.4));transition:fill .3s ease,filter .3s ease;}
-.cursor-brush.idle{animation:brushIdle 3s ease-in-out infinite;}
-@keyframes brushIdle{0%,100%{transform:rotate(-5deg) scale(1)}50%{transform:rotate(5deg) scale(1.05)}}
-.cursor-brush.hovering{transform:scale(1.3) rotate(0deg);animation:none;}
-.cursor-brush.hovering svg{filter:drop-shadow(0 0 8px var(--craft)) drop-shadow(0 0 16px rgba(200,169,110,.3));}
-.cursor-brush.text-mode{transform:scale(.5) rotate(0deg);animation:none;opacity:.6;}
-.cursor-brush.dragging{opacity:0;}
-.cursor-brush.nova-active svg path{fill:var(--blue);}
-.cursor-brush.nova-active svg{filter:drop-shadow(0 0 3px rgba(74,184,255,.4));}
-.cursor-brush.nova-active.hovering svg{filter:drop-shadow(0 0 8px var(--blue)) drop-shadow(0 0 16px rgba(74,184,255,.3));}
-@media(prefers-reduced-motion:reduce){.cursor-brush{animation:none!important;transition:none!important;}}
-@media(hover:none) and (pointer:coarse){.cursor-brush{display:none!important;}body{cursor:auto!important;}}
+/* ============================================
+   CURSOR — katana compacta
+   Preciso para texto, elegante en hover
+   ============================================ */
+body.has-mouse{cursor:none;}
+.cursor-wrap{position:fixed;top:0;left:0;pointer-events:none;z-index:10000;will-change:transform;}
 
-/* PARTÍCULAS */
-.particle{position:fixed;pointer-events:none;z-index:9998;border-radius:50%;animation:particleFade .6s ease-out forwards;}
-@keyframes particleFade{0%{opacity:1;transform:translate(0,0) scale(1)}100%{opacity:0;transform:translate(var(--tx),var(--ty)) scale(0)}}
+/* Punto central de precisión */
+.cursor-dot{
+  position:absolute;
+  width:5px;height:5px;border-radius:50%;
+  background:var(--craft);
+  top:-2.5px;left:-2.5px;
+  transition:transform .12s ease,background .2s,opacity .15s;
+  box-shadow:0 0 6px rgba(200,169,110,.8);
+}
+/* Anillo exterior */
+.cursor-ring{
+  position:absolute;
+  width:22px;height:22px;border-radius:50%;
+  border:1.5px solid rgba(200,169,110,.55);
+  top:-11px;left:-11px;
+  transition:transform .22s ease,border-color .2s,width .2s,height .2s,top .2s,left .2s,opacity .15s;
+}
+/* Línea katana: aparece solo en hover */
+.cursor-blade{
+  position:absolute;
+  width:0;height:1px;
+  background:linear-gradient(to right,transparent,var(--craft),rgba(200,169,110,.2));
+  top:0;left:3px;
+  transform-origin:left center;
+  transition:width .18s ease,opacity .15s;
+  opacity:0;
+}
 
-/* FONDO Y ESTRELLAS */
+/* ESTADO: idle */
+.cursor-wrap.idle .cursor-dot{transform:scale(1);}
+.cursor-wrap.idle .cursor-ring{transform:scale(1);}
+.cursor-wrap.idle .cursor-blade{width:0;opacity:0;}
+
+/* ESTADO: hovering — punto crece, anillo se expande, aparece blade */
+.cursor-wrap.hovering .cursor-dot{transform:scale(1.8);background:var(--craft-light);}
+.cursor-wrap.hovering .cursor-ring{
+  width:34px;height:34px;top:-17px;left:-17px;
+  border-color:rgba(200,169,110,.85);
+  transform:scale(1);
+}
+.cursor-wrap.hovering .cursor-blade{width:28px;opacity:1;}
+
+/* ESTADO: texto — punto se convierte en cursor I */
+.cursor-wrap.text-mode .cursor-dot{
+  width:2px;height:18px;border-radius:1px;
+  top:-9px;left:-1px;
+  transform:scale(1);
+  background:var(--craft);
+  box-shadow:0 0 4px rgba(200,169,110,.6);
+}
+.cursor-wrap.text-mode .cursor-ring{opacity:0;}
+.cursor-wrap.text-mode .cursor-blade{width:0;opacity:0;}
+
+/* ESTADO: drag */
+.cursor-wrap.dragging .cursor-dot{opacity:0;}
+.cursor-wrap.dragging .cursor-ring{opacity:0;}
+.cursor-wrap.dragging .cursor-blade{opacity:0;}
+
+/* TEMA NOVA */
+.cursor-wrap.nova-active .cursor-dot{background:var(--blue);box-shadow:0 0 6px rgba(74,184,255,.8);}
+.cursor-wrap.nova-active .cursor-ring{border-color:rgba(74,184,255,.55);}
+.cursor-wrap.nova-active .cursor-blade{background:linear-gradient(to right,transparent,var(--blue),rgba(74,184,255,.2));}
+.cursor-wrap.nova-active.hovering .cursor-ring{border-color:rgba(74,184,255,.85);}
+.cursor-wrap.nova-active.text-mode .cursor-dot{background:var(--blue);box-shadow:0 0 4px rgba(74,184,255,.6);}
+
+/* Solo escritorio — móvil usa cursor nativo */
+@media(hover:none) and (pointer:coarse){
+  .cursor-wrap{display:none!important;}
+  body{cursor:auto!important;}
+}
+
+/* ============================================
+   FONDO + IMÁGENES — sin parpadeo
+   ============================================ */
 #starsCanvas{position:fixed;inset:0;z-index:1;pointer-events:none;}
-.hero-bg{position:fixed;inset:0;z-index:0;background-image:url('fondo.png');background-size:cover;background-position:center top;opacity:.55;transition:transform .1s ease-out;}
+
+/* El fondo empieza invisible y hace fade-in cuando carga */
+.hero-bg{
+  position:fixed;inset:0;z-index:0;
+  background-color:#0d0d0d; /* color base mientras carga la imagen */
+  background-image:url('fondo.png');
+  background-size:cover;background-position:center top;
+  opacity:0;
+  transition:opacity .8s ease;
+}
+.hero-bg.loaded{opacity:.55;}
 .hero-bg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(10,10,10,.3) 0%,rgba(10,10,10,.75) 55%,rgba(10,10,10,.98) 100%);}
 
-/* MASCOTAS */
-.mascot{position:fixed;z-index:150;width:75px;height:75px;object-fit:contain;cursor:none;filter:drop-shadow(0 0 12px rgba(200,169,110,.5));transition:opacity .4s ease,filter .3s ease;user-select:none;-webkit-user-drag:none;}
+/* ============================================
+   MASCOTAS — skeleton + fade in
+   ============================================ */
+.mascot{
+  position:fixed;z-index:150;
+  width:75px;height:75px;object-fit:contain;
+  cursor:none;
+  filter:drop-shadow(0 0 12px rgba(200,169,110,.5));
+  user-select:none;-webkit-user-drag:none;
+  opacity:0; /* invisible hasta cargar */
+  transition:opacity .5s ease,filter .3s ease;
+}
+.mascot.img-ready{opacity:1;}
+.mascot.in-chat{opacity:0 !important;pointer-events:none;}
+@keyframes mascotBreathe{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-3px) scale(1.03)}}
 .mascot.nova-mascot{filter:drop-shadow(0 0 12px rgba(74,184,255,.5));}
-.mascot.in-chat{opacity:0;pointer-events:none;}
-.mascot.dragging-mascot{cursor:grabbing;z-index:200;transition:none;}
+.mascot.dragging-mascot{z-index:200;transition:none !important;}
 
-/* NAV Y HERO */
+/* En móvil las mascotas no existen */
+@media(hover:none) and (pointer:coarse){
+  .mascot{display:none !important;}
+}
+
+/* ============================================
+   NAV
+   ============================================ */
 nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:flex;align-items:center;justify-content:space-between;background:linear-gradient(to bottom,rgba(0,0,0,.88),transparent);border-bottom:1px solid rgba(200,169,110,.1);}
 .nav-logo{font-family:'Cinzel Decorative',serif;font-size:1.05rem;color:var(--craft);letter-spacing:3px;text-shadow:0 0 20px rgba(200,169,110,.5);}
 .nav-logo span{color:var(--white);}
 .nav-links{display:flex;gap:36px;list-style:none;}
 .nav-links a{color:var(--ash);text-decoration:none;font-size:.78rem;letter-spacing:3px;text-transform:uppercase;transition:color .3s;font-weight:600;}
 .nav-links a:hover{color:var(--craft);}
+
+/* ============================================
+   HERO
+   ============================================ */
 .hero{position:relative;z-index:2;min-height:100vh;display:flex;align-items:center;padding:0 60px;}
 .hero-content{max-width:680px;animation:fadeUpBlur 1.2s ease forwards;opacity:0;}
 @keyframes fadeUpBlur{from{opacity:0;transform:translateY(40px);filter:blur(6px)}to{opacity:1;transform:translateY(0);filter:blur(0)}}
@@ -57,14 +155,16 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .hero-jp{font-family:'Noto Serif JP',serif;font-size:.9rem;color:var(--ash);letter-spacing:8px;margin-bottom:22px;}
 .hero-desc{font-size:1rem;color:var(--ash);line-height:1.8;max-width:480px;margin-bottom:42px;font-weight:300;}
 .hero-btns{display:flex;gap:14px;flex-wrap:wrap;}
-.btn-primary{background:var(--craft);color:var(--black);border:none;padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn-primary{background:var(--craft);color:var(--black);border:none;padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:700;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .3s;position:relative;overflow:hidden;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
 .btn-primary::before{content:'';position:absolute;inset:0;background:var(--craft-light);transform:translateX(-100%);transition:transform .3s;}
 .btn-primary:hover::before{transform:translateX(0);}
 .btn-primary span{position:relative;z-index:1;}
-.btn-secondary{background:transparent;color:var(--craft);border:1px solid rgba(200,169,110,.4);padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
+.btn-secondary{background:transparent;color:var(--craft);border:1px solid rgba(200,169,110,.4);padding:14px 34px;font-family:'Rajdhani',sans-serif;font-size:.82rem;font-weight:600;letter-spacing:3px;text-transform:uppercase;cursor:pointer;transition:all .3s;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);}
 .btn-secondary:hover{background:rgba(200,169,110,.1);}
 
-/* STATS, DIVIDER, MATERIAS, SEARCH */
+/* ============================================
+   STATS
+   ============================================ */
 .stats-bar{position:relative;z-index:2;display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:rgba(200,169,110,.1);border-top:1px solid rgba(200,169,110,.1);border-bottom:1px solid rgba(200,169,110,.1);}
 .stat-item{background:rgba(10,10,10,.92);padding:22px 24px;text-align:center;}
 .stat-num{font-family:'Cinzel Decorative',serif;font-size:1.8rem;color:var(--craft);display:block;text-shadow:0 0 20px rgba(200,169,110,.3);}
@@ -72,10 +172,14 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .divider{position:relative;z-index:2;display:flex;align-items:center;gap:20px;padding:0 60px;margin:24px 0;}
 .divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(200,169,110,.3),transparent);}
 .divider-symbol{color:var(--craft);font-size:1.1rem;}
+
+/* ============================================
+   MATERIAS + SEARCH
+   ============================================ */
 .materias-nav{position:relative;z-index:2;padding:0 60px 28px;}
 .materias-label{font-size:.63rem;letter-spacing:5px;color:var(--ash);text-transform:uppercase;margin-bottom:14px;}
 .materias-tabs{display:flex;flex-wrap:wrap;gap:8px;}
-.materia-tab{padding:10px 20px;border:1px solid rgba(255,255,255,.07);color:var(--ash);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .3s;background:rgba(255,255,255,.02);font-family:'Rajdhani',sans-serif;font-weight:600;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
+.materia-tab{padding:10px 20px;border:1px solid rgba(255,255,255,.07);color:var(--ash);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;background:rgba(255,255,255,.02);font-family:'Rajdhani',sans-serif;font-weight:600;clip-path:polygon(6px 0%,100% 0%,calc(100% - 6px) 100%,0% 100%);}
 .materia-tab.active{border-color:var(--craft);color:var(--craft);background:rgba(200,169,110,.08);}
 .materia-tab.soon{opacity:.45;}
 .soon-badge{font-size:.53rem;background:rgba(255,255,255,.07);color:var(--ash);padding:2px 5px;margin-left:5px;letter-spacing:1px;}
@@ -85,141 +189,58 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .search-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.2);border-right:none;color:var(--white);padding:13px 20px;font-family:'Rajdhani',sans-serif;font-size:.93rem;outline:none;transition:border-color .3s;clip-path:polygon(10px 0%,100% 0%,100% 100%,0% 100%,0% 10px);}
 .search-input:focus{border-color:rgba(200,169,110,.5);}
 .search-input::placeholder{color:var(--smoke);}
-.search-btn{background:var(--craft);border:none;padding:0 24px;color:var(--black);font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:background .3s;clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,0% 100%);}
+.search-btn{background:var(--craft);border:none;padding:0 24px;color:var(--black);font-family:'Rajdhani',sans-serif;font-size:.76rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:background .3s;clip-path:polygon(0% 0%,calc(100% - 10px) 0%,100% 10px,100% 100%,0% 100%);}
 .search-btn:hover{background:var(--craft-light);}
 
-/* RECURSOS ESTILO STORE */
-.section{position:relative;z-index:2;padding:40px 20px 60px;}
-.section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:28px;max-width:1400px;margin-left:auto;margin-right:auto;}
+/* ============================================
+   GRID DE RECURSOS
+   ============================================ */
+.section{position:relative;z-index:2;padding:36px 60px 80px;}
+.section-header{display:flex;align-items:baseline;gap:16px;margin-bottom:28px;}
 .section-title{font-family:'Cinzel Decorative',serif;font-size:1.15rem;color:var(--white);letter-spacing:2px;}
 .section-jp{font-family:'Noto Serif JP',serif;font-size:.7rem;color:rgba(200,169,110,.4);letter-spacing:4px;}
 .section-line{flex:1;height:1px;background:linear-gradient(to right,rgba(200,169,110,.3),transparent);}
-.category-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;max-width:1400px;margin-left:auto;margin-right:auto;}
-.pill{padding:7px 17px;border:1px solid rgba(200,169,110,.14);color:var(--ash);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;cursor:none;transition:all .3s;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);background:transparent;font-family:'Rajdhani',sans-serif;font-weight:600;}
+.category-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px;}
+.pill{padding:7px 17px;border:1px solid rgba(200,169,110,.14);color:var(--ash);font-size:.68rem;letter-spacing:2px;text-transform:uppercase;cursor:pointer;transition:all .3s;clip-path:polygon(5px 0%,100% 0%,calc(100% - 5px) 100%,0% 100%);background:transparent;font-family:'Rajdhani',sans-serif;font-weight:600;}
 .pill:hover,.pill.active{border-color:var(--craft);color:var(--craft);background:rgba(200,169,110,.07);}
 
-.resources-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
-  gap:24px;
-  width:100%;
-  max-width:1400px;
-  margin:0 auto;
-}
+.resources-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:20px;width:100%;}
+@media(max-width:1400px){.resources-grid{grid-template-columns:repeat(4,1fr);}}
+@media(max-width:1100px){.resources-grid{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:750px) {.resources-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:500px) {.resources-grid{grid-template-columns:1fr;}}
 
-.resource-card{
-  background:#111111;
-  border:1px solid #2a2a2a;
-  border-radius:12px;
-  overflow:hidden;
-  transition:transform .3s ease,box-shadow .3s ease,border-color .3s;
-  display:flex;
-  flex-direction:column;
-  height:100%;
-  position:relative;
-}
+@keyframes cardReveal{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+.resource-card{background:#111;border:1px solid #2a2a2a;border-radius:12px;position:relative;overflow:hidden;cursor:pointer;opacity:1;animation:cardReveal .4s ease both;transform-style:preserve-3d;transition:border-color .3s,box-shadow .3s,transform .25s ease;}
+.resource-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(to right,transparent,var(--craft),transparent);transform:scaleX(0);transition:transform .4s;border-radius:12px 12px 0 0;}
+.resource-card:hover{border-color:rgba(200,169,110,.35);box-shadow:0 12px 40px rgba(200,169,110,.1);}
+.resource-card:hover::before{transform:scaleX(1);}
 
-.resource-card:hover{
-  transform:translateY(-5px);
-  box-shadow:0 10px 30px rgba(0,0,0,.5);
-  border-color:var(--craft);
-}
+.card-thumb{width:100%;height:180px;background:linear-gradient(135deg,#161616 0%,#1e1e1e 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+.card-thumb::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(200,169,110,.05) 0%,transparent 70%);}
+.card-icon{font-size:3.2rem;position:relative;z-index:1;filter:drop-shadow(0 0 14px rgba(200,169,110,.2));transition:transform .3s,filter .3s;}
+.resource-card:hover .card-icon{transform:scale(1.12);filter:drop-shadow(0 0 22px rgba(200,169,110,.45));}
 
-.card-thumb{
-  height:180px;
-  background:#1a1a1a;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
-}
+.card-badge{position:absolute;top:10px;right:10px;font-size:.55rem;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;font-weight:700;border-radius:4px;z-index:2;}
+.badge-web  {background:rgba(0,200,100,.12);color:#00c864;border:1px solid rgba(0,200,100,.25);}
+.badge-apk  {background:rgba(74,184,255,.12);color:#4ab8ff;border:1px solid rgba(74,184,255,.25);}
+.badge-zip  {background:rgba(200,169,110,.12);color:var(--craft);border:1px solid rgba(200,169,110,.25);}
+.badge-pdf  {background:rgba(255,80,80,.12);color:#ff5050;border:1px solid rgba(255,80,80,.25);}
+.badge-video{background:rgba(200,80,255,.12);color:#c850ff;border:1px solid rgba(200,80,255,.25);}
+.badge-audio{background:rgba(255,180,0,.12);color:#ffb400;border:1px solid rgba(255,180,0,.25);}
 
-.card-icon{
-  font-size:3.5rem;
-  filter:drop-shadow(0 0 10px rgba(255,255,255,.1));
-}
-
-.card-badge{
-  position:absolute;
-  top:15px;
-  right:15px;
-  font-size:.6rem;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  padding:4px 8px;
-  border-radius:4px;
-  font-weight:700;
-}
-
-.badge-web{background:rgba(0,200,100,.15);color:#00c864;border:1px solid rgba(0,200,100,.3);}
-.badge-apk{background:rgba(74,184,255,.15);color:#4ab8ff;border:1px solid rgba(74,184,255,.3);}
-.badge-pdf{background:rgba(255,80,80,.15);color:#ff5050;border:1px solid rgba(255,80,80,.3);}
-.badge-video{background:rgba(200,80,255,.15);color:#c850ff;border:1px solid rgba(200,80,255,.3);}
-.badge-audio{background:rgba(255,180,0,.15);color:#ffb400;border:1px solid rgba(255,180,0,.3);}
-.badge-zip{background:rgba(200,169,110,.15);color:var(--craft);border:1px solid rgba(200,169,110,.3);}
-
-.card-body{
-  padding:20px;
-  display:flex;
-  flex-direction:column;
-  flex-grow:1;
-}
-
-.card-category{
-  font-size:.65rem;
-  letter-spacing:2px;
-  text-transform:uppercase;
-  color:var(--craft);
-  margin-bottom:8px;
-  opacity:.8;
-}
-
-.card-title{
-  font-family:'Rajdhani',sans-serif;
-  font-size:1.15rem;
-  font-weight:700;
-  color:#fff;
-  margin-bottom:8px;
-  line-height:1.2;
-}
-
-.card-desc{
-  font-size:.85rem;
-  color:#888;
-  line-height:1.5;
-  margin-bottom:20px;
-  flex-grow:1;
-}
-
-.card-footer{
-  border-top:1px solid #333;
-  padding-top:15px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-}
-
+.card-body{padding:16px;}
+.card-category{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--craft);margin-bottom:6px;opacity:.8;}
+.card-title{font-family:'Rajdhani',sans-serif;font-size:1rem;font-weight:700;color:var(--white);margin-bottom:6px;line-height:1.3;}
+.card-desc{font-size:.76rem;color:var(--ash);line-height:1.6;margin-bottom:14px;}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid rgba(255,255,255,.06);}
 .card-level{display:flex;gap:4px;}
-.level-dot{width:6px;height:6px;border-radius:50%;background:#333;}
-.level-dot.active{background:var(--craft);box-shadow:0 0 5px var(--craft);}
+.level-dot{width:5px;height:5px;border-radius:50%;background:var(--smoke);}
+.level-dot.active{background:var(--craft);}
+.card-btn{font-size:.64rem;letter-spacing:2px;text-transform:uppercase;color:var(--craft);border:1px solid rgba(200,169,110,.25);padding:5px 14px;background:transparent;cursor:pointer;transition:all .3s;font-family:'Rajdhani',sans-serif;font-weight:700;border-radius:4px;}
+.card-btn:hover{background:rgba(200,169,110,.1);border-color:rgba(200,169,110,.5);}
 
-.card-btn{
-  font-size:.7rem;
-  letter-spacing:1px;
-  text-transform:uppercase;
-  color:var(--craft);
-  border:1px solid rgba(200,169,110,.3);
-  padding:6px 14px;
-  background:transparent;
-  cursor:none;
-  transition:all .3s;
-  font-family:'Rajdhani',sans-serif;
-  font-weight:700;
-  border-radius:4px;
-}
-
-.card-btn:hover{background:rgba(200,169,110,.1);border-color:var(--craft);}
-
+.no-results{grid-column:1/-1;text-align:center;padding:80px 40px;color:var(--ash);font-size:.9rem;letter-spacing:2px;}
 .coming-soon-panel{display:none;flex-direction:column;align-items:center;justify-content:center;padding:80px 40px;text-align:center;}
 .coming-soon-panel.visible{display:flex;}
 .cs-icon{font-size:3.5rem;margin-bottom:20px;opacity:.55;}
@@ -227,17 +248,44 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .cs-desc{font-size:.88rem;color:var(--ash);line-height:1.8;max-width:380px;}
 .cs-version{display:inline-block;margin-top:18px;font-size:.63rem;letter-spacing:4px;text-transform:uppercase;border:1px solid rgba(200,169,110,.18);color:rgba(200,169,110,.45);padding:5px 14px;}
 
+/* REVEAL */
+.reveal{opacity:0;transform:translateY(26px);filter:blur(4px);transition:opacity .8s ease,transform .8s ease,filter .8s ease;}
+.reveal.visible{opacity:1;transform:translateY(0);filter:blur(0);}
+
 /* FOOTER */
 footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(200,169,110,.08);display:flex;align-items:center;justify-content:space-between;}
 .footer-logo{font-family:'Cinzel Decorative',serif;font-size:.85rem;color:var(--craft);opacity:.5;}
 .footer-text{font-size:.68rem;color:var(--smoke);letter-spacing:2px;}
 
-/* CHAT LATERAL DERECHO */
-.chat-panel{position:fixed;top:0;right:0;width:var(--chat-w);height:100vh;background:rgba(11,11,11,.97);border-left:1px solid rgba(200,169,110,.2);z-index:199;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .4s cubic-bezier(.4,0,.2,1),border-color .4s ease,background .4s ease;backdrop-filter:blur(12px);}
+/* ============================================
+   CHAT — corregido para móvil
+   Usa dvh para que el teclado virtual no rompa el layout
+   ============================================ */
+.chat-panel{
+  position:fixed;top:0;left:0;
+  width:var(--chat-w);
+  height:100vh;
+  height:100dvh; /* respeta el teclado virtual en iOS/Android */
+  background:rgba(11,11,11,.97);
+  border-right:1px solid rgba(200,169,110,.2);
+  z-index:199;
+  display:flex;flex-direction:column;
+  transform:translateX(-100%);
+  transition:transform .4s cubic-bezier(.4,0,.2,1),border-color .4s ease;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px);
+  overflow:hidden; /* evita scroll del panel completo */
+}
 .chat-panel.open{transform:translateX(0);}
-.chat-panel.theme-sensei{border-color:rgba(200,169,110,.2);background:rgba(11,11,11,.97);}
 .chat-panel.theme-nova{border-color:rgba(74,184,255,.2);background:rgba(8,12,20,.97);}
-.chat-header{padding:14px 18px;border-bottom:1px solid rgba(200,169,110,.1);display:flex;align-items:center;justify-content:space-between;transition:border-color .4s ease;}
+
+.chat-header{
+  flex-shrink:0; /* nunca se comprime */
+  padding:14px 18px;
+  border-bottom:1px solid rgba(200,169,110,.1);
+  display:flex;align-items:center;justify-content:space-between;
+  transition:border-color .4s ease;
+}
 .theme-nova .chat-header{border-color:rgba(74,184,255,.1);}
 .chat-header-info{display:flex;align-items:center;gap:10px;}
 .chat-avatar{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 0 5px rgba(200,169,110,.4));transition:filter .4s ease;}
@@ -246,17 +294,27 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 .theme-nova .chat-header-title{color:var(--blue);}
 .chat-header-sub{font-size:.58rem;color:var(--ash);letter-spacing:1px;}
 .chat-actions{display:flex;gap:6px;}
-.chat-action-btn{background:none;border:none;color:var(--ash);cursor:none;font-size:.82rem;padding:4px;transition:color .3s;}
+.chat-action-btn{background:none;border:none;color:var(--ash);cursor:pointer;font-size:.82rem;padding:8px;transition:color .3s;}
 .chat-action-btn:hover{color:var(--craft);}
 .theme-nova .chat-action-btn:hover{color:var(--blue);}
-.chat-messages{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;}
+
+.chat-messages{
+  flex:1; /* ocupa todo el espacio disponible */
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch; /* scroll suave iOS */
+  padding:16px;
+  display:flex;flex-direction:column;gap:10px;
+  scrollbar-width:thin;scrollbar-color:var(--charcoal) transparent;
+  min-height:0; /* fix flex: permite que flex:1 funcione con overflow */
+}
 .chat-messages::-webkit-scrollbar{width:5px;}
 .chat-messages::-webkit-scrollbar-thumb{background:var(--charcoal);border-radius:3px;}
+
 .msg{max-width:88%;padding:10px 14px;font-size:.8rem;line-height:1.6;color:var(--silver);word-wrap:break-word;animation:msgIn .3s ease forwards;}
 @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-.msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:12px 0 12px 12px;align-self:flex-start;transition:background .4s ease,border-color .4s ease;}
+.msg-ai{background:rgba(200,169,110,.05);border:1px solid rgba(200,169,110,.12);border-radius:0 12px 12px 12px;align-self:flex-start;transition:background .4s ease,border-color .4s ease;}
 .theme-nova .msg-ai{background:rgba(74,184,255,.05);border-color:rgba(74,184,255,.12);}
-.msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:0 12px 12px 12px;align-self:flex-end;color:var(--white);}
+.msg-user{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:12px 0 12px 12px;align-self:flex-end;color:var(--white);}
 .msg-error{background:rgba(255,80,80,.08)!important;border-color:rgba(255,80,80,.2)!important;color:#ff8080;}
 .msg-typing{display:flex;gap:4px;padding:12px 14px;align-items:center;}
 .typing-dot{width:5px;height:5px;border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite;}
@@ -265,53 +323,107 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 .typing-dot:nth-child(2){animation-delay:.2s;}
 .typing-dot:nth-child(3){animation-delay:.4s;}
 @keyframes typingBounce{0%,100%{transform:translateY(0);opacity:.4}50%{transform:translateY(-5px);opacity:1}}
-.chat-input-area{padding:12px;border-top:1px solid rgba(200,169,110,.1);display:flex;gap:8px;position:relative;transition:border-color .4s ease;}
+
+/* Input area — siempre visible al fondo */
+.chat-input-area{
+  flex-shrink:0; /* nunca se comprime */
+  padding:12px;
+  border-top:1px solid rgba(200,169,110,.1);
+  display:flex;gap:8px;
+  align-items:center;
+  position:relative;
+  transition:border-color .4s ease;
+  /* safe area en iPhone con notch */
+  padding-bottom:max(12px, env(safe-area-inset-bottom));
+}
 .theme-nova .chat-input-area{border-color:rgba(74,184,255,.1);}
-.chat-mascot-rest{position:absolute;bottom:14px;right:14px;width:40px;height:40px;pointer-events:none;animation:mascotBreathe 3s ease-in-out infinite;z-index:1;transform:scaleX(-1);}
-@keyframes mascotBreathe{0%,100%{transform:translateY(0) scale(1) scaleX(-1)}50%{transform:translateY(-3px) scale(1.03) scaleX(-1)}}
-.chat-input{flex:1;background:rgba(255,255,255,.03);border:1px solid rgba(200,169,110,.12);color:var(--white);padding:10px 58px 10px 14px;font-family:'Rajdhani',sans-serif;font-size:.84rem;outline:none;transition:border-color .3s,background .4s ease;border-radius:4px;}
-.theme-nova .chat-input{border-color:rgba(74,184,255,.12);}
-.chat-input:focus{border-color:rgba(200,169,110,.35);}
-.theme-nova .chat-input:focus{border-color:rgba(74,184,255,.35);}
+
+.chat-mascot-rest{
+  flex-shrink:0;
+  width:36px;height:36px;
+  object-fit:contain;
+  animation:mascotBreathe 3s ease-in-out infinite;
+  opacity:.85;
+}
+.chat-input{
+  flex:1;
+  min-width:0; /* fix: sin esto el input puede desbordarse */
+  background:rgba(255,255,255,.05);
+  border:1px solid rgba(200,169,110,.18);
+  color:var(--white);
+  padding:11px 14px;
+  font-family:'Rajdhani',sans-serif;
+  font-size:16px; /* 16px evita zoom automático en iOS */
+  outline:none;
+  transition:border-color .3s;
+  border-radius:8px;
+}
+.theme-nova .chat-input{border-color:rgba(74,184,255,.18);}
+.chat-input:focus{border-color:rgba(200,169,110,.45);}
+.theme-nova .chat-input:focus{border-color:rgba(74,184,255,.45);}
 .chat-input::placeholder{color:var(--smoke);}
-.chat-input:disabled{opacity:.5;cursor:not-allowed;}
-.chat-send{background:var(--craft);border:none;color:var(--black);padding:0 16px;font-family:'Rajdhani',sans-serif;font-size:.78rem;font-weight:700;cursor:none;transition:background .3s;border-radius:4px;}
+.chat-input:disabled{opacity:.5;}
+.chat-send{
+  flex-shrink:0;
+  background:var(--craft);border:none;
+  color:var(--black);
+  width:42px;height:42px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.1rem;font-weight:700;
+  cursor:pointer;
+  transition:background .3s;
+  border-radius:8px;
+}
 .chat-send:hover{background:var(--craft-light);}
 .theme-nova .chat-send{background:var(--blue);}
 .theme-nova .chat-send:hover{background:#6ccaff;}
-.chat-send:disabled{background:var(--smoke);cursor:not-allowed;}
+.chat-send:disabled{background:var(--smoke);}
 
-/* REVEAL */
-.reveal{opacity:0;transform:translateY(26px);filter:blur(4px);transition:opacity .8s ease,transform .8s ease,filter .8s ease;}
-.reveal.visible{opacity:1;transform:translateY(0);filter:blur(0);}
+/* ============================================
+   PARTÍCULAS — solo desktop
+   ============================================ */
+.particle{position:fixed;pointer-events:none;z-index:9999;border-radius:50%;animation:particleFly .8s ease forwards;}
+@keyframes particleFly{0%{opacity:1;transform:scale(1) translate(0,0);}100%{opacity:0;transform:scale(0) translate(var(--tx),var(--ty));}}
 
+/* ============================================
+   RESPONSIVE GLOBAL
+   ============================================ */
 @media(max-width:768px){
   nav{padding:14px 20px;}
   .nav-links{display:none;}
-  .hero,.section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}
+  .hero{padding:0 20px;min-height:100svh;}
+  .section,.search-section,.materias-nav{padding-left:20px;padding-right:20px;}
   .stats-bar{grid-template-columns:repeat(2,1fr);}
   .divider{padding:0 20px;}
   footer{padding:20px;flex-direction:column;gap:10px;text-align:center;}
-  .chat-panel{width:100%;--chat-w:100%;}
-  .mascot{width:55px;height:55px;}
-  .resources-grid{grid-template-columns:1fr;}
+
+  /* Chat full-width en móvil */
+  .chat-panel{
+    width:100%;
+    --chat-w:100%;
+    height:100vh;
+    height:100dvh;
+  }
+  /* Fuente del input ya en 16px para evitar zoom */
 }
 </style>
 </head>
 <body>
 
-<div class="cursor-brush idle" id="cursorBrush">
-  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-    <path d="M3 1C3 1 2 3 2 5C2 7 3.5 8 4 9C4.5 10 4 14 3.5 17C3 20 5 22 7 22C9 22 10 20 10 18C10 16 9 13 8.5 11C8 9 9.5 7 11 5C12.5 3 14 2 14 2C14 2 10 0 7 0C5 0 3 1 3 1Z" fill="#c8a96e"/>
-    <circle cx="4" cy="20" r="1.2" fill="#c8a96e" opacity="0.6"/>
-  </svg>
+<!-- CURSOR KATANA (solo desktop vía JS) -->
+<div class="cursor-wrap idle" id="cursorWrap">
+  <div class="cursor-blade"></div>
+  <div class="cursor-ring"></div>
+  <div class="cursor-dot"></div>
 </div>
 
+<!-- FONDO -->
 <div class="hero-bg" id="heroBg"></div>
 <canvas id="starsCanvas"></canvas>
 
-<img class="mascot sensei-mascot" id="mascotSensei" src="sensei.png" title="Arrastra o haz clic para hablar con Sensei">
-<img class="mascot nova-mascot" id="mascotNova" src="nova.png" title="Arrastra o haz clic para hablar con Nova">
+<!-- MASCOTAS (solo desktop) -->
+<img class="mascot sensei-mascot" id="mascotSensei" src="sensei.png" loading="eager" alt="Sensei">
+<img class="mascot nova-mascot"   id="mascotNova"   src="nova.png"   loading="eager" alt="Nova">
 
 <nav>
   <div class="nav-logo">Kodami<span>Academy</span></div>
@@ -324,7 +436,7 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 
 <section class="hero">
   <div class="hero-content">
-    <div class="hero-tag"> Plataforma Educativa Gratuita</div>
+    <div class="hero-tag">⚔ Plataforma Educativa Gratuita</div>
     <h1 class="hero-title">La <span class="accent">Arena</span><br>del Saber</h1>
     <p class="hero-jp">知識の戦士よ、戦いを始めよ</p>
     <p class="hero-desc">Juegos, libros, videos, documentos y audio educativo. Aprende cualquier materia a través del desafío y la estrategia.</p>
@@ -348,11 +460,11 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
   <p class="materias-label">⚔ Elige tu materia</p>
   <div class="materias-tabs">
     <button class="materia-tab active" onclick="switchMateria('matematicas',this)">🔢 Matemáticas</button>
-    <button class="materia-tab soon" onclick="switchMateria('ciencias',this)">🔬 Ciencias <span class="soon-badge">Próx.</span></button>
-    <button class="materia-tab soon" onclick="switchMateria('historia',this)">📖 Historia <span class="soon-badge">Próx.</span></button>
-    <button class="materia-tab soon" onclick="switchMateria('geografia',this)"> Geografía <span class="soon-badge">Próx.</span></button>
-    <button class="materia-tab soon" onclick="switchMateria('espanol',this)">💬 Español <span class="soon-badge">Próx.</span></button>
-    <button class="materia-tab soon" onclick="switchMateria('arte',this)">🎨 Arte <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon"   onclick="switchMateria('ciencias',this)">🔬 Ciencias <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon"   onclick="switchMateria('historia',this)">📖 Historia <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon"   onclick="switchMateria('geografia',this)">🌍 Geografía <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon"   onclick="switchMateria('espanol',this)">💬 Español <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon"   onclick="switchMateria('arte',this)">🎨 Arte <span class="soon-badge">Próx.</span></button>
   </div>
 </div>
 
@@ -364,7 +476,7 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
   </div>
 </div>
 
-<section class="section reveal" id="recursos">
+<section class="section" id="recursos">
   <div class="section-header">
     <h2 class="section-title" id="sectionTitle">Matemáticas</h2>
     <span class="section-jp" id="sectionJp">数学</span>
@@ -380,7 +492,7 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
   </div>
   <div class="resources-grid" id="resourcesGrid"></div>
   <div class="coming-soon-panel" id="comingSoon">
-    <div class="cs-icon">️</div>
+    <div class="cs-icon">⚔️</div>
     <div class="cs-title">En Entrenamiento...</div>
     <div class="cs-desc">Esta sección está siendo forjada. Pronto estará disponible con recursos de alta calidad.</div>
     <span class="cs-version">Versión 1.0 — Solo Matemáticas</span>
@@ -389,9 +501,10 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 
 <footer>
   <div class="footer-logo">KodamiAcademy</div>
-  <p class="footer-text">Educación gratuita · Acceso público · Hecho con  e IA</p>
+  <p class="footer-text">Educación gratuita · Acceso público · Hecho con ⚔ e IA</p>
 </footer>
 
+<!-- CHAT -->
 <div class="chat-panel theme-sensei" id="chatPanel">
   <div class="chat-header">
     <div class="chat-header-info">
@@ -402,696 +515,406 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
       </div>
     </div>
     <div class="chat-actions">
-      <button class="chat-action-btn" onclick="clearChat()" title="Limpiar chat">🗑</button>
+      <button class="chat-action-btn" onclick="clearChat()" title="Limpiar">🗑</button>
       <button class="chat-action-btn" onclick="closeChat()" title="Cerrar">✕</button>
     </div>
   </div>
   <div class="chat-messages" id="chatMessages">
-    <div class="msg msg-ai">¡Bienvenido a KodamiAcademy! ⚔️ Soy <strong>Sensei</strong>. Puedo ayudarte a encontrar recursos, explicar temas o buscar información. ¿Por dónde empezamos?</div>
+    <div class="msg msg-ai">¡Bienvenido a KodamiAcademy! 🦝⚔️ Soy <strong>Sensei</strong>. Puedo ayudarte a encontrar recursos, explicar temas o buscar información. ¿Por dónde empezamos?</div>
   </div>
   <div class="chat-input-area">
-    <input class="chat-input" id="chatInput" placeholder="Pregunta lo que necesites..." maxlength="2000" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();sendMsg();}">
-    <button class="chat-send" id="chatSendBtn" onclick="sendMsg()">→</button>
     <img class="chat-mascot-rest" id="chatMascotRest" src="sensei.png" alt="">
+    <input class="chat-input" id="chatInput"
+      placeholder="Pregunta lo que necesites..."
+      maxlength="2000"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+    <button class="chat-send" id="chatSendBtn" onclick="sendMsg()">↑</button>
   </div>
 </div>
 
 <script>
-// PARTÍCULAS
-function createExplosion(x, y, color) {
-  const count = 12 + Math.floor(Math.random() * 8);
-  for (let i = 0; i < count; i++) {
-    const p = document.createElement('div');
-    p.className = 'particle';
-    const size = Math.random() * 4 + 2;
-    const angle = Math.random() * Math.PI * 2;
-    const velocity = Math.random() * 60 + 30;
-    const tx = Math.cos(angle) * velocity;
-    const ty = Math.sin(angle) * velocity;
-    p.style.cssText = `left:${x}px;top:${y}px;width:${size}px;height:${size}px;background:${color};--tx:${tx}px;--ty:${ty}px;`;
-    document.body.appendChild(p);
-    setTimeout(() => p.remove(), 600);
-  }
-}
-document.addEventListener('click', e => {
-  if (e.target.closest('input, textarea, .chat-panel')) return;
-  const color = (typeof activeAgent !== 'undefined' && activeAgent === 'nova') ? '#4ab8ff' : '#c8a96e';
-  createExplosion(e.clientX, e.clientY, color);
-});
+// ============================================
+// DETECCIÓN MÓVIL — una sola vez, controla todo
+// ============================================
+const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
 
-// CURSOR PINCEL
-const brush = document.getElementById('cursorBrush');
-let mouseX = 0, mouseY = 0, brushX = 0, brushY = 0;
-let isDraggingMascot = false;
-let currentCursorState = 'idle';
-
-document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
-
-(function animateBrush() {
-  brushX += (mouseX - brushX) * 0.18;
-  brushY += (mouseY - brushY) * 0.18;
-  brush.style.left = (brushX - 3) + 'px';
-  brush.style.top = (brushY - 3) + 'px';
-  requestAnimationFrame(animateBrush);
-})();
-
-const interactiveSel = 'a,button,.materia-tab,.pill,.card-btn,.chat-send,.chat-action-btn,.search-btn,.mascot,[onclick]';
-const textSel = 'input,textarea,.chat-input,.search-input';
-
-document.addEventListener('mouseover', e => {
-  if (isDraggingMascot) return;
-  if (e.target.closest(textSel)) setCursorState('text-mode');
-  else if (e.target.closest(interactiveSel)) setCursorState('hovering');
-  else setCursorState('idle');
-});
-document.addEventListener('mouseout', e => {
-  if (isDraggingMascot) return;
-  if (!e.relatedTarget || !e.relatedTarget.closest) setCursorState('idle');
-});
-
-function setCursorState(state) {
-  if (currentCursorState === state) return;
-  brush.classList.remove(currentCursorState);
-  brush.classList.add(state);
-  currentCursorState = state;
-}
-function setCursorDragging(d) { isDraggingMascot = d; d ? setCursorState('dragging') : setCursorState('idle'); }
-function setCursorTheme(agent) { agent === 'nova' ? brush.classList.add('nova-active') : brush.classList.remove('nova-active'); }
-
-document.querySelectorAll('input,textarea').forEach(el => {
-  el.addEventListener('focus', () => setCursorState('text-mode'));
-  el.addEventListener('blur', () => setCursorState('idle'));
-});
-
-// PARALLAX
+// ============================================
+// CARGA SIN PARPADEO: fondo + mascotas
+// ============================================
 const heroBg = document.getElementById('heroBg');
-document.addEventListener('mousemove', e => {
-  const x = (e.clientX / window.innerWidth - 0.5) * 10;
-  const y = (e.clientY / window.innerHeight - 0.5) * 10;
-  heroBg.style.transform = `translate(${x}px, ${y}px) scale(1.02)`;
+// Precarga la imagen del fondo antes de mostrarla
+const bgImg = new Image();
+bgImg.onload = () => heroBg.classList.add('loaded');
+bgImg.src = 'fondo.png';
+
+// Mascotas: fade-in individual cuando cargan
+['mascotSensei','mascotNova'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el.complete) el.classList.add('img-ready');
+  else el.addEventListener('load', () => el.classList.add('img-ready'));
 });
 
-// ESTRELLAS
-const sc = document.getElementById('starsCanvas');
-const sx = sc.getContext('2d');
+// ============================================
+// CURSOR KATANA — solo escritorio
+// ============================================
+if(!isMobile){
+  document.body.classList.add('has-mouse');
+  const wrap = document.getElementById('cursorWrap');
+  let mx=0,my=0,cx=0,cy=0;
+  let cursorState='idle';
 
-function resizeSc() {
-  sc.width = window.innerWidth;
-  sc.height = window.innerHeight;
-}
-resizeSc();
-window.addEventListener('resize', resizeSc);
+  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
 
-const stars = Array.from({ length: 100 }, () => ({
-  x: Math.random() * window.innerWidth,
-  y: Math.random() * window.innerHeight,
-  size: Math.random() * 1.2 + 0.2,
-  opacity: Math.random() * 0.6 + 0.1,
-  dir: Math.random() > 0.5 ? 1 : -1
-}));
+  (function animCursor(){
+    cx += (mx-cx)*.2;
+    cy += (my-cy)*.2;
+    wrap.style.transform = `translate(${cx}px,${cy}px)`;
+    requestAnimationFrame(animCursor);
+  })();
 
-const meteors = [];
-function spawnMeteor() {
-  if (meteors.length < 5) {
-    meteors.push({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight * 0.3,
-      len: Math.random() * 140 + 60,
-      speed: Math.random() * 7 + 4,
-      opacity: 1,
-      angle: Math.PI / 4
-    });
-  }
-}
-setInterval(spawnMeteor, 2500);
+  const hoverSel = 'a,button,.materia-tab,.pill,.card-btn,.search-btn,.chat-send,.chat-action-btn,.mascot,[onclick]';
+  const textSel  = 'input,textarea';
 
-function drawStars() {
-  sx.clearRect(0, 0, sc.width, sc.height);
-  stars.forEach(s => {
-    s.opacity += 0.003 * s.dir;
-    if (s.opacity >= 0.8 || s.opacity <= 0.05) s.dir *= -1;
-    sx.beginPath();
-    sx.arc(s.x, s.y, s.size, 0, Math.PI * 2);
-    sx.fillStyle = `rgba(200,169,110,${s.opacity})`;
-    sx.fill();
+  document.addEventListener('mouseover', e => {
+    if(e.target.closest(textSel))      setState('text-mode');
+    else if(e.target.closest(hoverSel)) setState('hovering');
+    else                                setState('idle');
   });
-  for (let i = meteors.length - 1; i >= 0; i--) {
-    const m = meteors[i];
-    const gx = sx.createLinearGradient(
-      m.x, m.y,
-      m.x - Math.cos(m.angle) * m.len,
-      m.y - Math.sin(m.angle) * m.len
-    );
-    gx.addColorStop(0, `rgba(255,220,150,${m.opacity})`);
-    gx.addColorStop(1, 'rgba(200,169,110,0)');
-    sx.beginPath();
-    sx.moveTo(m.x, m.y);
-    sx.lineTo(m.x - Math.cos(m.angle) * m.len, m.y - Math.sin(m.angle) * m.len);
-    sx.strokeStyle = gx;
-    sx.lineWidth = 2;
-    sx.stroke();
-    m.x += Math.cos(m.angle) * m.speed;
-    m.y += Math.sin(m.angle) * m.speed;
-    m.opacity -= 0.018;
-    if (m.opacity <= 0 || m.x > sc.width + 100 || m.y > sc.height + 100) {
-      meteors.splice(i, 1);
-    }
+  document.addEventListener('mouseout', e => {
+    if(!e.relatedTarget || !e.relatedTarget.closest) setState('idle');
+  });
+  document.querySelectorAll('input,textarea').forEach(el=>{
+    el.addEventListener('focus',()=>setState('text-mode'));
+    el.addEventListener('blur', ()=>setState('idle'));
+  });
+
+  function setState(s){
+    if(cursorState===s) return;
+    wrap.classList.remove(cursorState);
+    wrap.classList.add(s);
+    cursorState=s;
+  }
+  window.setCursorDragging = d => setState(d?'dragging':'idle');
+  window.setCursorTheme   = a => a==='nova' ? wrap.classList.add('nova-active') : wrap.classList.remove('nova-active');
+} else {
+  // stubs para que el resto del código no falle
+  window.setCursorDragging = ()=>{};
+  window.setCursorTheme    = ()=>{};
+}
+
+// ============================================
+// ESTRELLAS (ligero, canvas)
+// ============================================
+const sc=document.getElementById('starsCanvas'),sx=sc.getContext('2d');
+function resizeSc(){sc.width=window.innerWidth;sc.height=window.innerHeight;}
+resizeSc();window.addEventListener('resize',resizeSc);
+const starCount = isMobile ? 50 : 100;
+const stars=Array.from({length:starCount},()=>({
+  x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight,
+  size:Math.random()*1.2+.2,opacity:Math.random()*.6+.1,dir:Math.random()>.5?1:-1
+}));
+const meteors=[];
+if(!isMobile) setInterval(()=>{if(meteors.length<5)meteors.push({x:Math.random()*window.innerWidth,y:Math.random()*window.innerHeight*.3,len:Math.random()*140+60,speed:Math.random()*7+4,opacity:1,angle:Math.PI/4});},2500);
+function drawStars(){
+  sx.clearRect(0,0,sc.width,sc.height);
+  stars.forEach(s=>{s.opacity+=.003*s.dir;if(s.opacity>=.8||s.opacity<=.05)s.dir*=-1;sx.beginPath();sx.arc(s.x,s.y,s.size,0,Math.PI*2);sx.fillStyle=`rgba(200,169,110,${s.opacity})`;sx.fill();});
+  for(let i=meteors.length-1;i>=0;i--){
+    const m=meteors[i];
+    const gx=sx.createLinearGradient(m.x,m.y,m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
+    gx.addColorStop(0,`rgba(255,220,150,${m.opacity})`);gx.addColorStop(1,'rgba(200,169,110,0)');
+    sx.beginPath();sx.moveTo(m.x,m.y);sx.lineTo(m.x-Math.cos(m.angle)*m.len,m.y-Math.sin(m.angle)*m.len);
+    sx.strokeStyle=gx;sx.lineWidth=2;sx.stroke();
+    m.x+=Math.cos(m.angle)*m.speed;m.y+=Math.sin(m.angle)*m.speed;m.opacity-=.018;
+    if(m.opacity<=0||m.x>sc.width+100||m.y>sc.height+100)meteors.splice(i,1);
   }
   requestAnimationFrame(drawStars);
 }
 drawStars();
 
-// MASCOTAS INTELIGENTES
-const WAYPOINTS = [
-  {x:0,y:0},{x:0.5,y:0},{x:1,y:0},
-  {x:1,y:0.5},{x:1,y:1},{x:0.5,y:1},
-  {x:0,y:1},{x:0,y:0.5}
-];
-const MASCOT_SIZE = 75;
-const EDGE_MARGIN = 10;
-
-class MascotController {
-  constructor(el, agent) {
-    this.el = el;
-    this.agent = agent;
-    this.x = Math.random() * (window.innerWidth - MASCOT_SIZE);
-    this.y = Math.random() * (window.innerHeight - MASCOT_SIZE);
-    this.targetX = this.x;
-    this.targetY = this.y;
-    this.state = 'idle';
-    this.facingRight = true;
-    this.pauseTimer = 0;
-    this.speed = 1.5 + Math.random();
-    this.dragOffsetX = 0;
-    this.dragOffsetY = 0;
-    
-    this.el.style.left = this.x + 'px';
-    this.el.style.top = this.y + 'px';
-    
-    this.pickNextWaypoint();
-    this.setupDrag();
-    this.el.addEventListener('click', () => {
-      if (this.state !== 'dragging' && this.state !== 'returning') openChat(this.agent);
-    });
-  }
-  
-  pickNextWaypoint() {
-    const wp = WAYPOINTS[Math.floor(Math.random() * WAYPOINTS.length)];
-    const vw = window.innerWidth, vh = window.innerHeight;
-    this.targetX = wp.x * (vw - MASCOT_SIZE - EDGE_MARGIN*2) + EDGE_MARGIN;
-    this.targetY = wp.y * (vh - MASCOT_SIZE - EDGE_MARGIN*2) + EDGE_MARGIN;
-    this.state = 'moving';
-  }
-  
-  update() {
-    if (this.state === 'in-chat' || this.state === 'dragging') return;
-    
-    if (this.state === 'idle') {
-      this.pauseTimer--;
-      if (this.pauseTimer <= 0) this.pickNextWaypoint();
-      return;
-    }
-    
-    const dx = this.targetX - this.x;
-    const dy = this.targetY - this.y;
-    const dist = Math.sqrt(dx*dx + dy*dy);
-    
-    if (dist < 3) {
-      this.x = this.targetX;
-      this.y = this.targetY;
-      this.state = 'idle';
-      this.pauseTimer = 60 + Math.random() * 120;
-    } else {
-      const moveSpeed = this.state === 'returning' ? 4 : this.speed;
-      this.x += (dx / dist) * moveSpeed;
-      this.y += (dy / dist) * moveSpeed;
-      
-      const shouldFaceRight = dx > 0;
-      if (shouldFaceRight !== this.facingRight) {
-        this.facingRight = shouldFaceRight;
-        this.el.style.transform = shouldFaceRight ? 'scaleX(1)' : 'scaleX(-1)';
-      }
-    }
-    
-    this.el.style.left = this.x + 'px';
-    this.el.style.top = this.y + 'px';
-  }
-  
-  setupDrag() {
-    let startX, startY, hasMoved;
-    
-    const onDown = (e) => {
-      if (this.state === 'in-chat') return;
-      e.preventDefault();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      this.dragOffsetX = clientX - this.x;
-      this.dragOffsetY = clientY - this.y;
-      startX = clientX; startY = clientY; hasMoved = false;
-      this.state = 'dragging';
-      this.el.classList.add('dragging-mascot');
-      setCursorDragging(true);
-      
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
-      document.addEventListener('touchmove', onMove, {passive:false});
-      document.addEventListener('touchend', onUp);
-    };
-    
-    const onMove = (e) => {
-      e.preventDefault();
-      const clientX = e.touches ? e.touches[0].clientX : e.clientX;
-      const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-      if (Math.abs(clientX-startX)>5 || Math.abs(clientY-startY)>5) hasMoved = true;
-      this.x = Math.max(0, Math.min(window.innerWidth-MASCOT_SIZE, clientX - this.dragOffsetX));
-      this.y = Math.max(0, Math.min(window.innerHeight-MASCOT_SIZE, clientY - this.dragOffsetY));
-      this.el.style.left = this.x + 'px';
-      this.el.style.top = this.y + 'px';
-    };
-    
-    const onUp = (e) => {
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
-      document.removeEventListener('touchmove', onMove);
-      document.removeEventListener('touchend', onUp);
-      this.el.classList.remove('dragging-mascot');
-      setCursorDragging(false);
-      
-      if (!hasMoved) {
-        this.state = 'idle';
-        return;
-      }
-      
-      let closestDist = Infinity, closestWp = WAYPOINTS[0];
-      const vw = window.innerWidth, vh = window.innerHeight;
-      WAYPOINTS.forEach(wp => {
-        const wx = wp.x*(vw-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
-        const wy = wp.y*(vh-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
-        const d = Math.sqrt((this.x-wx)**2+(this.y-wy)**2);
-        if (d < closestDist) { closestDist=d; closestWp=wp; }
-      });
-      
-      this.targetX = closestWp.x*(vw-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
-      this.targetY = closestWp.y*(vh-MASCOT_SIZE-EDGE_MARGIN*2)+EDGE_MARGIN;
-      this.state = 'returning';
-    };
-    
-    this.el.addEventListener('mousedown', onDown);
-    this.el.addEventListener('touchstart', onDown, {passive:false});
-  }
-  
-  enterChat() {
-    this.state = 'in-chat';
-    this.el.classList.add('in-chat');
-  }
-  
-  exitChat() {
-    this.el.classList.remove('in-chat');
-    this.state = 'returning';
-    this.pickNextWaypoint();
-  }
+// ============================================
+// PARALLAX HERO — solo desktop
+// ============================================
+if(!isMobile){
+  const heroBgEl=document.getElementById('heroBg');
+  document.addEventListener('mousemove',e=>{
+    const x=(e.clientX/window.innerWidth-.5)*10,y=(e.clientY/window.innerHeight-.5)*10;
+    heroBgEl.style.transform=`translate(${x}px,${y}px) scale(1.02)`;
+  });
 }
 
-const senseiCtrl = new MascotController(document.getElementById('mascotSensei'), 'sensei');
-const novaCtrl = new MascotController(document.getElementById('mascotNova'), 'nova');
-
-function updateMascots() {
-  senseiCtrl.update();
-  novaCtrl.update();
-  requestAnimationFrame(updateMascots);
-}
-updateMascots();
-
-// TILT 3D
-document.addEventListener('mousemove', e => {
-  document.querySelectorAll('.resource-card').forEach(card => {
-    const rect = card.getBoundingClientRect();
-    if (e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom) {
-      const x = (e.clientX - rect.left) / rect.width - 0.5;
-      const y = (e.clientY - rect.top) / rect.height - 0.5;
-      card.style.transform = `perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-4px)`;
-    } else {
-      card.style.transform = '';
+// ============================================
+// PARTÍCULAS DE CLIC — solo desktop
+// ============================================
+if(!isMobile){
+  document.addEventListener('click',e=>{
+    for(let i=0;i<8;i++){
+      const p=document.createElement('div');p.className='particle';
+      const angle=Math.random()*Math.PI*2,dist=30+Math.random()*50;
+      p.style.cssText=`left:${e.clientX}px;top:${e.clientY}px;width:${3+Math.random()*4}px;height:${3+Math.random()*4}px;background:${Math.random()>.5?'var(--craft)':'rgba(200,169,110,.5)'};--tx:${Math.cos(angle)*dist}px;--ty:${Math.sin(angle)*dist}px;`;
+      document.body.appendChild(p);setTimeout(()=>p.remove(),800);
     }
   });
-});
+}
 
+// ============================================
+// MASCOTAS — solo desktop
+// ============================================
+if(!isMobile){
+  const WAYPOINTS=[{x:0,y:0},{x:.5,y:0},{x:1,y:0},{x:1,y:.5},{x:1,y:1},{x:.5,y:1},{x:0,y:1},{x:0,y:.5}];
+  const MS=75,EDGE=10;
+  class MascotController{
+    constructor(el,agent){
+      this.el=el;this.agent=agent;
+      this.x=Math.random()*(window.innerWidth-MS);this.y=Math.random()*(window.innerHeight-MS);
+      this.targetX=this.x;this.targetY=this.y;
+      this.state='idle';this.facingRight=true;this.pauseTimer=0;this.speed=1.5+Math.random();
+      this.el.style.left=this.x+'px';this.el.style.top=this.y+'px';
+      this.el.style.position='fixed';
+      this.pickNextWaypoint();this.setupDrag();
+      this.el.addEventListener('click',()=>{if(this.state!=='dragging'&&this.state!=='returning')openChat(this.agent);});
+    }
+    pickNextWaypoint(){
+      const wp=WAYPOINTS[Math.floor(Math.random()*WAYPOINTS.length)];
+      const vw=window.innerWidth,vh=window.innerHeight;
+      this.targetX=wp.x*(vw-MS-EDGE*2)+EDGE;this.targetY=wp.y*(vh-MS-EDGE*2)+EDGE;this.state='moving';
+    }
+    update(){
+      if(this.state==='in-chat'||this.state==='dragging')return;
+      if(this.state==='idle'){this.pauseTimer--;if(this.pauseTimer<=0)this.pickNextWaypoint();return;}
+      const dx=this.targetX-this.x,dy=this.targetY-this.y,dist=Math.sqrt(dx*dx+dy*dy);
+      if(dist<3){this.x=this.targetX;this.y=this.targetY;this.state='idle';this.pauseTimer=60+Math.random()*120;}
+      else{
+        const spd=this.state==='returning'?4:this.speed;
+        this.x+=dx/dist*spd;this.y+=dy/dist*spd;
+        const r=dx>0;if(r!==this.facingRight){this.facingRight=r;this.el.style.transform=r?'scaleX(1)':'scaleX(-1)';}
+      }
+      this.el.style.left=this.x+'px';this.el.style.top=this.y+'px';
+    }
+    setupDrag(){
+      let sX,sY,moved;
+      const onDown=e=>{
+        if(this.state==='in-chat')return;e.preventDefault();
+        const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;
+        this.offX=cx-this.x;this.offY=cy-this.y;sX=cx;sY=cy;moved=false;
+        this.state='dragging';this.el.classList.add('dragging-mascot');setCursorDragging(true);
+        document.addEventListener('mousemove',onMove);document.addEventListener('mouseup',onUp);
+        document.addEventListener('touchmove',onMove,{passive:false});document.addEventListener('touchend',onUp);
+      };
+      const onMove=e=>{
+        e.preventDefault();
+        const cx=e.touches?e.touches[0].clientX:e.clientX,cy=e.touches?e.touches[0].clientY:e.clientY;
+        if(Math.abs(cx-sX)>5||Math.abs(cy-sY)>5)moved=true;
+        this.x=Math.max(0,Math.min(window.innerWidth-MS,cx-this.offX));
+        this.y=Math.max(0,Math.min(window.innerHeight-MS,cy-this.offY));
+        this.el.style.left=this.x+'px';this.el.style.top=this.y+'px';
+      };
+      const onUp=()=>{
+        document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseup',onUp);
+        document.removeEventListener('touchmove',onMove);document.removeEventListener('touchend',onUp);
+        this.el.classList.remove('dragging-mascot');setCursorDragging(false);
+        if(!moved){this.state='idle';return;}
+        const vw=window.innerWidth,vh=window.innerHeight;
+        let bd=Infinity,bw=WAYPOINTS[0];
+        WAYPOINTS.forEach(wp=>{const wx=wp.x*(vw-MS-EDGE*2)+EDGE,wy=wp.y*(vh-MS-EDGE*2)+EDGE,d=Math.sqrt((this.x-wx)**2+(this.y-wy)**2);if(d<bd){bd=d;bw=wp;}});
+        this.targetX=bw.x*(vw-MS-EDGE*2)+EDGE;this.targetY=bw.y*(vh-MS-EDGE*2)+EDGE;this.state='returning';
+      };
+      this.el.addEventListener('mousedown',onDown);
+      this.el.addEventListener('touchstart',onDown,{passive:false});
+    }
+    enterChat(){this.state='in-chat';this.el.classList.add('in-chat');}
+    exitChat(){this.el.classList.remove('in-chat');this.state='moving';this.pickNextWaypoint();}
+  }
+  window.senseiCtrl=new MascotController(document.getElementById('mascotSensei'),'sensei');
+  window.novaCtrl  =new MascotController(document.getElementById('mascotNova'),'nova');
+  (function loop(){window.senseiCtrl.update();window.novaCtrl.update();requestAnimationFrame(loop);})();
+} else {
+  // stubs para móvil
+  window.senseiCtrl={enterChat:()=>{},exitChat:()=>{}};
+  window.novaCtrl  ={enterChat:()=>{},exitChat:()=>{}};
+}
+
+// ============================================
+// TILT 3D — solo desktop
+// ============================================
+if(!isMobile){
+  document.addEventListener('mousemove',e=>{
+    document.querySelectorAll('.resource-card').forEach(card=>{
+      const r=card.getBoundingClientRect();
+      if(e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom){
+        const x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+        card.style.transform=`perspective(800px) rotateY(${x*8}deg) rotateX(${-y*8}deg) translateY(-4px)`;
+      }else{card.style.transform='';}
+    });
+  });
+}
+
+// ============================================
 // RECURSOS
-const resources = [
-  { id: 1, title: 'Duelo de Fracciones', cat: 'juego', desc: 'Batalla de fracciones equivalentes en tiempo real.', icon: '⚔️', badge: 'web', badgeClass: 'badge-web', level: 2, link: '#' },
-  { id: 2, title: 'Geometría Ninja', cat: 'juego', desc: 'Calcula áreas y perímetros contra el tiempo.', icon: '', badge: 'web', badgeClass: 'badge-web', level: 3, link: '#' },
-  { id: 3, title: 'Álgebra Samurai', cat: 'juego', desc: 'Resuelve ecuaciones para desbloquear el siguiente nivel.', icon: '🀄', badge: 'apk', badgeClass: 'badge-apk', level: 3, link: '#' },
-  { id: 4, title: 'Ruta de la Lógica', cat: 'juego', desc: 'Puzzles de razonamiento lógico y patrones numéricos.', icon: '🧩', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
-  { id: 5, title: 'Aritmética Veloz', cat: 'juego', desc: 'Operaciones básicas contra el reloj.', icon: '⚡', badge: 'web', badgeClass: 'badge-web', level: 1, link: '#' },
-  { id: 6, title: 'Imperio de las Tablas', cat: 'juego', desc: 'Domina las tablas de multiplicar con cartas.', icon: '', badge: 'zip', badgeClass: 'badge-zip', level: 2, link: '#' },
-  { id: 7, title: 'Guía de Álgebra', cat: 'libro', desc: 'Manual completo con ejercicios resueltos.', icon: '📚', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
-  { id: 8, title: 'Introducción a la Geometría', cat: 'libro', desc: 'Geometría euclidiana para nivel medio.', icon: '', badge: 'pdf', badgeClass: 'badge-pdf', level: 1, link: '#' },
-  { id: 9, title: 'Clase: Fracciones desde Cero', cat: 'video', desc: 'Video explicativo completo sobre fracciones.', icon: '🎬', badge: 'video', badgeClass: 'badge-video', level: 1, link: '#' },
-  { id: 10, title: 'Podcast: Historia de Pi', cat: 'audio', desc: 'La fascinante historia del número Pi.', icon: '🎵', badge: 'audio', badgeClass: 'badge-audio', level: 1, link: '#' },
-  { id: 11, title: 'Formulario de Geometría', cat: 'documento', desc: 'Todas las fórmulas geométricas en un documento.', icon: '📄', badge: 'pdf', badgeClass: 'badge-pdf', level: 2, link: '#' },
-  { id: 12, title: 'Ejercicios de Estadística', cat: 'documento', desc: 'Hoja de ejercicios con estadística descriptiva.', icon: '📊', badge: 'zip', badgeClass: 'badge-zip', level: 3, link: '#' },
+// ============================================
+const resources=[
+  {id:1, title:'Duelo de Fracciones',   cat:'juego',    desc:'Batalla de fracciones equivalentes en tiempo real.',   icon:'⚔️', badge:'web',   badgeClass:'badge-web',   level:2, link:'#'},
+  {id:2, title:'Geometría Ninja',        cat:'juego',    desc:'Calcula áreas y perímetros contra el tiempo.',         icon:'📐', badge:'web',   badgeClass:'badge-web',   level:3, link:'#'},
+  {id:3, title:'Álgebra Samurai',        cat:'juego',    desc:'Resuelve ecuaciones para desbloquear el nivel.',       icon:'🀄', badge:'apk',   badgeClass:'badge-apk',   level:3, link:'#'},
+  {id:4, title:'Ruta de la Lógica',      cat:'juego',    desc:'Puzzles de razonamiento lógico y patrones numéricos.', icon:'🧩', badge:'web',   badgeClass:'badge-web',   level:1, link:'#'},
+  {id:5, title:'Aritmética Veloz',       cat:'juego',    desc:'Operaciones básicas contra el reloj.',                 icon:'⚡', badge:'web',   badgeClass:'badge-web',   level:1, link:'#'},
+  {id:6, title:'Imperio de las Tablas',  cat:'juego',    desc:'Domina las tablas de multiplicar con cartas.',         icon:'🃏', badge:'zip',   badgeClass:'badge-zip',   level:2, link:'#'},
+  {id:7, title:'Guía de Álgebra',        cat:'libro',    desc:'Manual completo con ejercicios resueltos.',            icon:'📚', badge:'pdf',   badgeClass:'badge-pdf',   level:2, link:'#'},
+  {id:8, title:'Intro a la Geometría',   cat:'libro',    desc:'Geometría euclidiana para nivel medio.',               icon:'📖', badge:'pdf',   badgeClass:'badge-pdf',   level:1, link:'#'},
+  {id:9, title:'Fracciones desde Cero',  cat:'video',    desc:'Video explicativo completo sobre fracciones.',         icon:'🎬', badge:'video', badgeClass:'badge-video', level:1, link:'#'},
+  {id:10,title:'Historia de Pi',          cat:'audio',    desc:'La fascinante historia del número Pi.',                icon:'🎵', badge:'audio', badgeClass:'badge-audio', level:1, link:'#'},
+  {id:11,title:'Formulario Geometría',    cat:'documento',desc:'Todas las fórmulas geométricas en un doc.',           icon:'📄', badge:'pdf',   badgeClass:'badge-pdf',   level:2, link:'#'},
+  {id:12,title:'Ejercicios Estadística',  cat:'documento',desc:'Hoja de ejercicios con estadística descriptiva.',     icon:'📊', badge:'zip',   badgeClass:'badge-zip',   level:3, link:'#'},
 ];
+let currentMateria='matematicas',currentCat='all';
+const materiaInfo={matematicas:{title:'Matemáticas',jp:'数学'},ciencias:{title:'Ciencias',jp:'科学'},historia:{title:'Historia',jp:'歴史'},geografia:{title:'Geografía',jp:'地理'},espanol:{title:'Español',jp:'言語'},arte:{title:'Arte',jp:'芸術'}};
 
-let currentMateria = 'matematicas';
-let currentCat = 'all';
-
-const materiaInfo = {
-  matematicas: { title: 'Matemáticas', jp: '数学' },
-  ciencias: { title: 'Ciencias', jp: '科学' },
-  historia: { title: 'Historia', jp: '歴史' },
-  geografia: { title: 'Geografía', jp: '地理' },
-  espanol: { title: 'Español', jp: '言語' },
-  arte: { title: 'Arte', jp: '芸術' }
-};
-
-function renderResources(data) {
-  const grid = document.getElementById('resourcesGrid');
-  const cs = document.getElementById('comingSoon');
-  
-  if (currentMateria !== 'matematicas') {
-    grid.style.display = 'none';
-    cs.classList.add('visible');
-    return;
-  }
-  
-  cs.classList.remove('visible');
-  grid.style.display = 'grid';
-  
-  if (data.length === 0) {
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--ash);font-size:.9rem;letter-spacing:2px;"> No se encontraron recursos</div>';
-    return;
-  }
-  
-  grid.innerHTML = data.map((r, i) => `
-    <div class="resource-card" style="animation-delay:${i * 0.05}s">
+function renderResources(data){
+  const grid=document.getElementById('resourcesGrid'),cs=document.getElementById('comingSoon');
+  if(currentMateria!=='matematicas'){grid.style.display='none';cs.classList.add('visible');return;}
+  cs.classList.remove('visible');grid.style.display='grid';
+  if(!data.length){grid.innerHTML='<div class="no-results">⚔ No se encontraron recursos</div>';return;}
+  grid.innerHTML=data.map((r,i)=>`
+    <div class="resource-card" style="animation-delay:${i*.06}s">
       <div class="card-thumb">
         <div class="card-icon">${r.icon}</div>
-        <span class="card-badge ${r.badgeClass}">${r.badge}</span>
+        <span class="card-badge ${r.badgeClass}">${r.badge.toUpperCase()}</span>
       </div>
       <div class="card-body">
         <div class="card-category">${r.cat}</div>
         <div class="card-title">${r.title}</div>
         <div class="card-desc">${r.desc}</div>
         <div class="card-footer">
-          <div class="card-level">
-            ${[1, 2, 3].map(n => `<div class="level-dot ${n <= r.level ? 'active' : ''}"></div>`).join('')}
-          </div>
-          <button class="card-btn" onclick="window.open('${r.link}','_blank')">
-            ${r.cat === 'juego' && r.badge === 'web' ? '▶ Jugar' : '⬇ Abrir'}
-          </button>
+          <div class="card-level">${[1,2,3].map(n=>`<div class="level-dot ${n<=r.level?'active':''}"></div>`).join('')}</div>
+          <button class="card-btn" onclick="window.open('${r.link}','_blank')">${r.cat==='juego'&&r.badge==='web'?'▶ Jugar':'⬇ Abrir'}</button>
         </div>
       </div>
     </div>
   `).join('');
 }
-
-function switchMateria(mat, el) {
-  currentMateria = mat;
-  currentCat = 'all';
-  document.querySelectorAll('.materia-tab').forEach(t => t.classList.remove('active'));
-  el.classList.add('active');
-  document.querySelectorAll('.pill').forEach((p, i) => i === 0 ? p.classList.add('active') : p.classList.remove('active'));
-  const info = materiaInfo[mat] || { title: mat, jp: '' };
-  document.getElementById('sectionTitle').textContent = info.title;
-  document.getElementById('sectionJp').textContent = info.jp;
+function switchMateria(mat,el){
+  currentMateria=mat;currentCat='all';
+  document.querySelectorAll('.materia-tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  document.querySelectorAll('.pill').forEach((p,i)=>i===0?p.classList.add('active'):p.classList.remove('active'));
+  const info=materiaInfo[mat]||{title:mat,jp:''};
+  document.getElementById('sectionTitle').textContent=info.title;
+  document.getElementById('sectionJp').textContent=info.jp;
   applyFilters();
 }
-
-function filterCat(cat, el) {
-  currentCat = cat;
-  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-  el.classList.add('active');
-  applyFilters();
+function filterCat(cat,el){
+  currentCat=cat;document.querySelectorAll('.pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');applyFilters();
 }
-
-function applyFilters() {
-  const q = document.getElementById('searchInput').value.toLowerCase();
-  if (currentMateria !== 'matematicas') {
-    renderResources([]);
-    return;
-  }
-  renderResources(resources.filter(r =>
-    (currentCat === 'all' || r.cat === currentCat) &&
-    (q === '' || r.title.toLowerCase().includes(q) || r.desc.toLowerCase().includes(q) || r.cat.includes(q))
-  ));
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  if(currentMateria!=='matematicas'){renderResources([]);return;}
+  renderResources(resources.filter(r=>(currentCat==='all'||r.cat===currentCat)&&(q===''||r.title.toLowerCase().includes(q)||r.desc.toLowerCase().includes(q)||r.cat.includes(q))));
 }
-
 renderResources(resources);
 
-// CONTADORES
-const obsEl = new IntersectionObserver(entries => entries.forEach(e => {
-  if (e.isIntersecting) {
+// ============================================
+// CONTADORES + REVEAL
+// ============================================
+const obs=new IntersectionObserver(entries=>entries.forEach(e=>{
+  if(e.isIntersecting){
     e.target.classList.add('visible');
-    if (e.target.id === 'statsBar') {
-      document.querySelectorAll('[data-target]').forEach(el => {
-        const t = +el.dataset.target;
-        let c = 0;
-        const iv = setInterval(() => {
-          c = Math.min(c + t / 40, t);
-          el.textContent = Math.floor(c);
-          if (c >= t) clearInterval(iv);
-        }, 35);
-      });
-    }
-  }
-}), { threshold: 0.1 });
-
-document.querySelectorAll('.reveal').forEach(el => obsEl.observe(el));
-
-// CHAT
-const WORKER_URL = 'https://kodami-chat.kodami-academy24.workers.dev/';
-
-let chatHistory = [];
-let chatOpen = false;
-let isSending = false;
-let activeAgent = 'sensei';
-
-const chatPanel = document.getElementById('chatPanel');
-const chatAvatar = document.getElementById('chatAvatar');
-const chatName = document.getElementById('chatName');
-const chatSub = document.getElementById('chatSub');
-const chatMascotRest = document.getElementById('chatMascotRest');
-
-function openChat(agent) {
-  if (chatOpen && activeAgent === agent) { closeChat(); return; }
-  
-  activeAgent = agent;
-  chatOpen = true;
-  
-  chatPanel.className = `chat-panel open theme-${agent}`;
-  setCursorTheme(agent);
-  
-  if (agent === 'nova') {
-    chatAvatar.src = 'nova.png';
-    chatName.textContent = '💙 Nova';
-    chatSub.textContent = 'Exploradora digital';
-    chatMascotRest.src = 'nova.png';
-    novaCtrl.enterChat();
-    senseiCtrl.exitChat();
-  } else {
-    chatAvatar.src = 'sensei.png';
-    chatName.textContent = '⚔ Sensei';
-    chatSub.textContent = 'Guardián del conocimiento';
-    chatMascotRest.src = 'sensei.png';
-    senseiCtrl.enterChat();
-    novaCtrl.exitChat();
-  }
-  
-  setTimeout(() => document.getElementById('chatInput').focus(), 300);
-}
-
-function closeChat() {
-  chatOpen = false;
-  chatPanel.classList.remove('open');
-  setCursorTheme('sensei');
-  senseiCtrl.exitChat();
-  novaCtrl.exitChat();
-}
-
-function toggleChat() { openChat('sensei'); }
-
-function clearChat() {
-  if (!confirm('¿Limpiar todo el historial de chat?')) return;
-  chatHistory = [];
-  const msgs = document.getElementById('chatMessages');
-  msgs.innerHTML = `<div class="msg msg-ai">¡Chat limpio! ${activeAgent==='nova'?'💙🚀':'🦝⚔️'} ¿En qué puedo ayudarte ahora?</div>`;
-}
-
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-}
-
-function addMsg(text, isAi, isNova = false, isError = false) {
-  const msgs = document.getElementById('chatMessages');
-  const msgDiv = document.createElement('div');
-  
-  let className = 'msg';
-  if (isAi) {
-    className += ' msg-ai' + (isNova ? ' nova' : '');
-  } else {
-    className += ' msg-user';
-  }
-  if (isError) {
-    className += ' msg-error';
-  }
-  
-  msgDiv.className = className;
-  if (isAi && !isError) {
-    const badgeColor = activeAgent === 'nova' ? 'var(--blue)' : 'var(--craft)';
-    const badgeName = activeAgent === 'nova' ? '💙 Nova' : '⚔ Sensei';
-    msgDiv.innerHTML = `<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:${badgeColor};opacity:.7;display:block;margin-bottom:3px;">${badgeName}</span>${text}`;
-  } else {
-    msgDiv.innerHTML = text;
-  }
-  msgs.appendChild(msgDiv);
-  msgs.scrollTop = msgs.scrollHeight;
-  
-  return msgDiv;
-}
-
-async function sendMsg() {
-  if (isSending) return;
-  
-  const input = document.getElementById('chatInput');
-  const sendBtn = document.getElementById('chatSendBtn');
-  const msg = input.value.trim();
-  
-  if (!msg) return;
-  if (msg.length > 2000) {
-    addMsg('⚠️ El mensaje es demasiado largo (máximo 2000 caracteres)', true, false, true);
-    return;
-  }
-  
-  isSending = true;
-  input.value = '';
-  input.disabled = true;
-  sendBtn.disabled = true;
-  
-  addMsg(escapeHtml(msg), false);
-  chatHistory.push({ role: 'user', content: msg });
-  
-  const tid = 't' + Date.now();
-  const msgs = document.getElementById('chatMessages');
-  const typingDiv = document.createElement('div');
-  typingDiv.className = 'msg msg-ai msg-typing';
-  typingDiv.id = tid;
-  const dotColor = activeAgent === 'nova' ? 'blue' : 'gold';
-  typingDiv.innerHTML = `<div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div><div class="typing-dot ${dotColor}"></div>`;
-  msgs.appendChild(typingDiv);
-  msgs.scrollTop = msgs.scrollHeight;
-  
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-    
-    const res = await fetch(WORKER_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        message: msg,
-        history: chatHistory.slice(-10)
-      }),
-      signal: controller.signal
+    if(e.target.id==='statsBar')document.querySelectorAll('[data-target]').forEach(el=>{
+      const t=+el.dataset.target;let c=0;
+      const iv=setInterval(()=>{c=Math.min(c+t/40,t);el.textContent=Math.floor(c);if(c>=t)clearInterval(iv);},35);
     });
-    
-    clearTimeout(timeoutId);
-    
-    if (!res.ok) {
-      let errorMsg = `Error del servidor (${res.status})`;
-      try {
-        const errorData = await res.json();
-        errorMsg = errorData.error || errorMsg;
-      } catch (e) {
-        const errorText = await res.text();
-        if (errorText) errorMsg += ': ' + errorText;
-      }
-      throw new Error(errorMsg);
-    }
-    
-    const responseText = await res.text();
-    
-    if (!responseText || responseText.trim() === '') {
-      throw new Error('Respuesta vacía del servidor');
-    }
-    
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (parseError) {
-      console.error('Respuesta no es JSON válido:', responseText);
-      throw new Error('Respuesta inválida del servidor');
-    }
-    
-    if (data.error) {
-      throw new Error(data.error.message || data.error || 'Error de la IA');
-    }
-    
-    const reply = data.choices?.[0]?.message?.content;
-    
-    if (!reply || reply.trim() === '') {
-      throw new Error('La IA no generó una respuesta');
-    }
-    
-    document.getElementById(tid)?.remove();
-    
-    const detectedAgent = reply.toLowerCase().includes('nova') || reply.includes('💙') || reply.includes('🚀') ? 'nova' : 'sensei';
-    if (detectedAgent !== activeAgent) {
-      activeAgent = detectedAgent;
-      chatPanel.className = `chat-panel open theme-${activeAgent}`;
-      setCursorTheme(activeAgent);
-      if (activeAgent === 'nova') {
-        chatAvatar.src = 'nova.png';
-        chatName.textContent = '💙 Nova';
-        chatSub.textContent = 'Exploradora digital';
-        chatMascotRest.src = 'nova.png';
-        novaCtrl.enterChat();
-        senseiCtrl.exitChat();
-      } else {
-        chatAvatar.src = 'sensei.png';
-        chatName.textContent = '⚔ Sensei';
-        chatSub.textContent = 'Guardián del conocimiento';
-        chatMascotRest.src = 'sensei.png';
-        senseiCtrl.enterChat();
-        novaCtrl.exitChat();
-      }
-    }
-    
-    chatHistory.push({ role: 'assistant', content: reply });
-    
-    const formattedReply = escapeHtml(reply).replace(/\n/g, '<br>');
-    addMsg(formattedReply, true, false, false);
-    
-  } catch (e) {
-    console.error('Error en el chat:', e);
-    document.getElementById(tid)?.remove();
-    
-    if (chatHistory.length > 0 && chatHistory[chatHistory.length - 1].role === 'user') {
-      chatHistory.pop();
-    }
-    
-    let errorMsg = '⚔️ ';
-    if (e.name === 'AbortError') {
-      errorMsg += 'La respuesta tardó demasiado. Intenta de nuevo.';
-    } else if (e.message.includes('Failed to fetch') || e.message.includes('NetworkError')) {
-      errorMsg += 'Error de conexión. Verifica tu internet.';
-    } else {
-      errorMsg += escapeHtml(e.message);
-    }
-    
-    addMsg(errorMsg, true, false, true);
-  } finally {
-    isSending = false;
-    input.disabled = false;
-    sendBtn.disabled = false;
-    input.focus();
   }
-}
+}),{threshold:.1});
+document.querySelectorAll('.reveal').forEach(el=>obs.observe(el));
 
-if ('ontouchstart' in window) {
-  document.body.style.cursor = 'auto';
-  brush.style.display = 'none';
+// ============================================
+// CHAT
+// ============================================
+const WORKER_URL='https://kodami-chat.kodami-academy24.workers.dev/';
+let chatHistory=[],chatOpen=false,isSending=false,activeAgent='sensei';
+const chatPanel=document.getElementById('chatPanel');
+
+function openChat(agent){
+  if(chatOpen&&activeAgent===agent){closeChat();return;}
+  activeAgent=agent;chatOpen=true;
+  chatPanel.className=`chat-panel open theme-${agent}`;
+  setCursorTheme(agent);
+  if(agent==='nova'){
+    document.getElementById('chatAvatar').src='nova.png';
+    document.getElementById('chatName').textContent='💙 Nova';
+    document.getElementById('chatSub').textContent='Exploradora digital';
+    document.getElementById('chatMascotRest').src='nova.png';
+    novaCtrl.enterChat();senseiCtrl.exitChat();
+  }else{
+    document.getElementById('chatAvatar').src='sensei.png';
+    document.getElementById('chatName').textContent='⚔ Sensei';
+    document.getElementById('chatSub').textContent='Guardián del conocimiento';
+    document.getElementById('chatMascotRest').src='sensei.png';
+    senseiCtrl.enterChat();novaCtrl.exitChat();
+  }
+  setTimeout(()=>document.getElementById('chatInput').focus(),300);
+}
+function closeChat(){
+  chatOpen=false;chatPanel.classList.remove('open');
+  setCursorTheme('sensei');senseiCtrl.exitChat();novaCtrl.exitChat();
+}
+function clearChat(){
+  if(!confirm('¿Limpiar historial?'))return;chatHistory=[];
+  document.getElementById('chatMessages').innerHTML=`<div class="msg msg-ai">¡Chat limpio! ${activeAgent==='nova'?'💙🚀':'🦝⚔️'} ¿En qué puedo ayudarte?</div>`;
+}
+function escapeHtml(t){const d=document.createElement('div');d.textContent=t;return d.innerHTML;}
+function addMsg(text,isAi,isError=false){
+  const msgs=document.getElementById('chatMessages');
+  const div=document.createElement('div');
+  div.className='msg'+(isAi?' msg-ai':' msg-user')+(isError?' msg-error':'');
+  if(isAi&&!isError){
+    const badge=activeAgent==='nova'
+      ?'<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--blue);opacity:.7;display:block;margin-bottom:3px;">💙 Nova</span>'
+      :'<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--craft);opacity:.7;display:block;margin-bottom:3px;">⚔ Sensei</span>';
+    div.innerHTML=badge+text;
+  }else{div.innerHTML=text;}
+  msgs.appendChild(div);
+  // Scroll al nuevo mensaje
+  setTimeout(()=>{msgs.scrollTop=msgs.scrollHeight;},50);
+}
+async function sendMsg(){
+  if(isSending)return;
+  const input=document.getElementById('chatInput'),sendBtn=document.getElementById('chatSendBtn');
+  const msg=input.value.trim();if(!msg)return;
+  if(msg.length>2000){addMsg('⚠️ Máximo 2000 caracteres',true,true);return;}
+  isSending=true;input.value='';input.disabled=true;sendBtn.disabled=true;
+  addMsg(escapeHtml(msg),false);
+  chatHistory.push({role:'user',content:msg});
+  const tid='t'+Date.now();
+  const msgs=document.getElementById('chatMessages');
+  const typing=document.createElement('div');
+  typing.className='msg msg-ai msg-typing';typing.id=tid;
+  const dc=activeAgent==='nova'?'blue':'gold';
+  typing.innerHTML=`<div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div><div class="typing-dot ${dc}"></div>`;
+  msgs.appendChild(typing);msgs.scrollTop=msgs.scrollHeight;
+  try{
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),30000);
+    const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:msg,history:chatHistory.slice(-10)}),signal:controller.signal});
+    clearTimeout(timeout);
+    if(!res.ok){let e='';try{const ed=await res.json();e=ed.error||'';}catch{e=await res.text();}throw new Error(e||`Error ${res.status}`);}
+    const raw=await res.text();if(!raw||!raw.trim())throw new Error('Respuesta vacía');
+    let data;try{data=JSON.parse(raw);}catch{throw new Error('Respuesta inválida');}
+    if(data.error)throw new Error(data.error.message||data.error);
+    const reply=data.choices?.[0]?.message?.content;if(!reply||!reply.trim())throw new Error('Sin respuesta');
+    document.getElementById(tid)?.remove();
+    chatHistory.push({role:'assistant',content:reply});
+    addMsg(escapeHtml(reply).replace(/\n/g,'<br>'),true,false);
+  }catch(e){
+    document.getElementById(tid)?.remove();
+    if(chatHistory.length&&chatHistory[chatHistory.length-1].role==='user')chatHistory.pop();
+    let em='⚔️ ';
+    if(e.name==='AbortError')em+='Tiempo agotado.';
+    else if(e.message.includes('Failed to fetch'))em+='Error de conexión.';
+    else em+=escapeHtml(e.message);
+    addMsg(em,true,true);
+  }finally{
+    isSending=false;input.disabled=false;sendBtn.disabled=false;
+    if(!isMobile) input.focus();
+  }
 }
 </script>
 </body>
