@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>KodamiAcademy — La Arena del Saber</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&family=Noto+Serif+JP:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+<!-- CURSOR -->
+<div class="cursor-wrap idle" id="cursorWrap">
+  <div class="cursor-blade"></div>
+  <div class="cursor-ring"></div>
+  <div class="cursor-dot"></div>
+</div>
+
+<!-- FONDO -->
+<div class="hero-bg" id="heroBg"></div>
+<canvas id="starsCanvas"></canvas>
+
+<!-- MASCOTAS (desktop) -->
+<img class="mascot sensei-mascot" id="mascotSensei" src="sensei.png" loading="eager" alt="Sensei">
+<img class="mascot nova-mascot"   id="mascotNova"   src="nova.png"   loading="eager" alt="Nova">
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">Kodami<span>Academy</span></div>
+  <button class="hamburger" onclick="toggleNav()">☰</button>
+  <ul class="nav-links" id="navLinks">
+    <li><a href="#recursos" onclick="closeNav()">Recursos</a></li>
+    <li><a href="#materias" onclick="closeNav()">Materias</a></li>
+    <li><a href="admin/login.html">Docentes</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-content">
+    <div class="hero-tag">⚔ Plataforma Educativa Gratuita</div>
+    <h1 class="hero-title">La <span class="accent">Arena</span><br>del Saber</h1>
+    <p class="hero-jp">知識の戦士よ、戦いを始めよ</p>
+    <p class="hero-desc">Juegos, libros, videos, documentos y audio educativo. Aprende cualquier materia a través del desafío y la estrategia.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('recursos').scrollIntoView({behavior:'smooth'})"><span>⚔ Explorar Recursos</span></button>
+      <button class="btn-secondary" onclick="openChat('sensei')">Hablar con Sensei 🦝</button>
+      <button class="btn-secondary nova-btn" onclick="openChat('nova')">Hablar con Nova 💙</button>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats-bar reveal" id="statsBar">
+  <div class="stat-item"><span class="stat-num" data-target="0">0</span><span class="stat-label">Recursos</span></div>
+  <div class="stat-item"><span class="stat-num" data-target="1">0</span><span class="stat-label">Materias</span></div>
+  <div class="stat-item"><span class="stat-num" data-target="5">0</span><span class="stat-label">Formatos</span></div>
+  <div class="stat-item"><span class="stat-num">∞</span><span class="stat-label">Acceso Gratuito</span></div>
+</div>
+
+<div class="divider"><div class="divider-line"></div><div class="divider-symbol">⛩</div><div class="divider-line"></div></div>
+
+<!-- MATERIAS -->
+<div class="materias-nav reveal" id="materias">
+  <p class="materias-label">⚔ Elige tu materia</p>
+  <div class="materias-tabs">
+    <button class="materia-tab active" onclick="switchMateria('matematicas',this)">🔢 Matemáticas</button>
+    <button class="materia-tab soon" onclick="switchMateria('ciencias',this)">🔬 Ciencias <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('historia',this)">📖 Historia <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('geografia',this)">🌍 Geografía <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('espanol',this)">💬 Español <span class="soon-badge">Próx.</span></button>
+    <button class="materia-tab soon" onclick="switchMateria('arte',this)">🎨 Arte <span class="soon-badge">Próx.</span></button>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-section reveal">
+  <p class="search-label">⚔ Busca tu recurso</p>
+  <div class="search-container">
+    <input class="search-input" id="searchInput" type="text" placeholder="Ej: fracciones, álgebra, videos..." oninput="applyFilters()">
+    <button class="search-btn" onclick="applyFilters()">Buscar</button>
+  </div>
+</div>
+
+<!-- RECURSOS -->
+<section class="section" id="recursos">
+  <div class="section-header">
+    <h2 class="section-title" id="sectionTitle">Matemáticas</h2>
+    <span class="section-jp" id="sectionJp">数学</span>
+    <div class="section-line"></div>
+  </div>
+  <div class="category-pills" id="pills">
+    <button class="pill active" onclick="filterCat('all',this)">Todos</button>
+    <button class="pill" onclick="filterCat('juego',this)">⚔ Juegos</button>
+    <button class="pill" onclick="filterCat('libro',this)">📚 Libros</button>
+    <button class="pill" onclick="filterCat('video',this)">🎬 Videos</button>
+    <button class="pill" onclick="filterCat('documento',this)">📄 Documentos</button>
+    <button class="pill" onclick="filterCat('audio',this)">🎵 Audio</button>
+    <button class="pill" onclick="filterCat('imagen',this)">🖼 Imágenes</button>
+  </div>
+  <div class="resources-grid" id="resourcesGrid"></div>
+  <div class="coming-soon-panel" id="comingSoon">
+    <div class="cs-icon">⚔️</div>
+    <div class="cs-title">En Entrenamiento...</div>
+    <div class="cs-desc">Esta sección está siendo forjada. Pronto estará disponible con recursos de alta calidad.</div>
+    <span class="cs-version">Versión 1.0 — Solo Matemáticas</span>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">KodamiAcademy</div>
+  <p class="footer-text">Educación gratuita · Acceso público · Hecho con ⚔ e IA</p>
+</footer>
+
+<!-- CHAT SENSEI (izquierda) -->
+<div class="chat-panel chat-sensei" id="chatSensei">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <img class="chat-avatar" src="sensei.png" alt="Sensei">
+      <div>
+        <div class="chat-header-title">⚔ Sensei</div>
+        <div class="chat-header-sub">Guardián del conocimiento</div>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="chat-action-btn" onclick="toggleTTS()" id="ttsToggle" title="Activar/desactivar voz">🔊</button>
+      <button class="chat-action-btn" onclick="clearChat('sensei')" title="Limpiar">🗑</button>
+      <button class="chat-action-btn" onclick="closeChat()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessagesSensei">
+    <div class="msg msg-ai">¡Bienvenido, guerrero! 🦝⚔️ Soy <strong>Sensei</strong>. Pregúntame sobre matemáticas y te responderé basado en los libros de texto. ¿Por dónde empezamos?</div>
+  </div>
+  <div class="chat-input-area">
+    <img class="chat-mascot-rest" src="sensei.png" alt="">
+    <div class="chat-actions-row">
+      <button class="chat-action-icon" onclick="toggleVoice()" title="Entrada por voz">🎤</button>
+    </div>
+    <input class="chat-input" id="chatInputSensei"
+      placeholder="Pregunta lo que necesites..."
+      maxlength="2000"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('sensei');}">
+    <button class="chat-send" onclick="sendMsg('sensei')">↑</button>
+  </div>
+</div>
+
+<!-- CHAT NOVA (derecha) -->
+<div class="chat-panel chat-nova" id="chatNova">
+  <div class="chat-header">
+    <div class="chat-header-info">
+      <img class="chat-avatar" src="nova.png" alt="Nova">
+      <div>
+        <div class="chat-header-title">💙 Nova</div>
+        <div class="chat-header-sub">Exploradora digital</div>
+      </div>
+    </div>
+    <div class="chat-actions">
+      <button class="chat-action-btn" onclick="toggleTTS()" id="ttsToggle2" title="Activar/desactivar voz">🔊</button>
+      <button class="chat-action-btn" onclick="clearChat('nova')" title="Limpiar">🗑</button>
+      <button class="chat-action-btn" onclick="closeChat()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="chat-messages" id="chatMessagesNova">
+    <div class="msg msg-ai">¡Hola, explorador! 💙🚀 Soy <strong>Nova</strong>. Puedo buscar información en la web para ti. ¿Qué quieres que busque?</div>
+  </div>
+  <div class="chat-input-area">
+    <img class="chat-mascot-rest" src="nova.png" alt="">
+    <div class="chat-actions-row">
+      <button class="chat-action-icon" onclick="toggleVoice()" title="Entrada por voz">🎤</button>
+    </div>
+    <input class="chat-input" id="chatInputNova"
+      placeholder="Buscar en la web..."
+      maxlength="2000"
+      autocomplete="off"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('nova');}">
+    <button class="chat-send" onclick="sendMsg('nova')">↑</button>
+  </div>
+</div>
+
+<!-- FAB para docentes (solo visible si hay sesión) -->
+<div id="fabContainer" style="display:none;">
+  <a href="admin/upload.html" class="fab fab-upload" title="Subir recurso">+</a>
+  <a href="admin/dashboard.html" class="fab fab-admin" title="Panel docente">⚙</a>
+</div>
+
+<!-- SCRIPTS -->
+<script>
+const API = 'https://kodami-api.kodami-academy24.workers.dev';
+const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+
+function toggleNav() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+function closeNav() {
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+// FAB visibility for logged-in teachers
+if (localStorage.getItem('kodami_token')) {
+  document.getElementById('fabContainer').style.display = 'block';
+}
+</script>
+<script src="js/auth.js"></script>
+<script src="js/app.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/recursos.js"></script>
+</body>
+</html>

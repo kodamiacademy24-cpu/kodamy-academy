@@ -1,0 +1,20 @@
+name = "kodami-api"
+main = "worker.js"
+compatibility_date = "2025-04-01"
+account_id = "3568eff3b771e54b70a125fc221fc77f"
+
+[[r2_buckets]]
+binding = "RECURSOS"
+bucket_name = "kodami-recursos"
+
+[[r2_buckets]]
+binding = "CEREBRO"
+bucket_name = "kodami-cerebro"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "kodami-db"
+database_id = "afd4664d-6e8f-4394-9d7d-ab4babac1c4b"
+
+[ai]
+binding = "AI"

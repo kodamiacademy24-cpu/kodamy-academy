@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KodamiAdmin — Subir Recurso</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+    <div class="nav-logo">Kodami<span>Admin</span></div>
+    <a href="dashboard.html" class="admin-btn" style="background:transparent;color:var(--craft);border:1px solid rgba(200,169,110,.3);">← Volver</a>
+  </div>
+  <div class="admin-card">
+    <div class="admin-title">📤 Subir Nuevo Recurso</div>
+    <form id="uploadForm" onsubmit="return handleUpload(event)">
+      <label class="admin-label">Título del recurso *</label>
+      <input class="admin-input" id="titulo" required placeholder="Ej: Duelo de Fracciones">
+
+      <label class="admin-label">Materia</label>
+      <select class="admin-select" id="materia">
+        <option value="matematicas">Matemáticas</option>
+        <option value="ciencias" disabled>Ciencias (Próximamente)</option>
+        <option value="historia" disabled>Historia (Próximamente)</option>
+      </select>
+
+      <label class="admin-label">Tema</label>
+      <select class="admin-select" id="tema">
+        <option value="">Seleccionar tema...</option>
+      </select>
+
+      <label class="admin-label">Tipo de recurso</label>
+      <select class="admin-select" id="tipo">
+        <option value="">Auto-detectar por extensión</option>
+        <option value="juego">Juego (HTML, APK, ZIP)</option>
+        <option value="libro">Libro (PDF, EPUB)</option>
+        <option value="video">Video (MP4, WebM)</option>
+        <option value="audio">Audio (MP3, WAV)</option>
+        <option value="documento">Documento (PDF, DOC, PPT)</option>
+        <option value="imagen">Imagen (PNG, JPG, GIF)</option>
+      </select>
+
+      <label class="admin-label">Archivo *</label>
+      <div class="admin-file-input">
+        <input type="file" id="archivo" required accept=".pdf,.epub,.html,.zip,.apk,.mp4,.webm,.mp3,.wav,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.ppt,.pptx,.txt">
+      </div>
+
+      <label class="admin-label">Portada / Captura</label>
+      <div class="admin-file-input">
+        <input type="file" id="portada" accept="image/*">
+      </div>
+
+      <label class="admin-label">Descripción (opcional — si se deja vacía, la IA la genera)</label>
+      <textarea class="admin-input" id="descripcion" rows="3" placeholder="Describe el recurso..." style="resize:vertical;"></textarea>
+
+      <label class="admin-label">Nivel de dificultad</label>
+      <div class="admin-level-selector" id="nivelSelector">
+        <div class="admin-level-option active" data-level="1" onclick="selectLevel(1)">★ Básico</div>
+        <div class="admin-level-option" data-level="2" onclick="selectLevel(2)">★★ Intermedio</div>
+        <div class="admin-level-option" data-level="3" onclick="selectLevel(3)">★★★ Avanzado</div>
+      </div>
+
+      <div id="uploadMsg" style="margin-top:16px;text-align:center;"></div>
+
+      <button type="submit" class="admin-btn" id="submitBtn" style="width:100%;margin-top:16px;">📤 Subir Recurso</button>
+    </form>
+  </div>
+</div>
+<script src="../js/auth.js"></script>
+<script>
+const API = 'https://kodami-api.kodami-academy24.workers.dev';
+let selectedLevel = 1;
+
+if (!isAuthenticated()) window.location.href = 'login.html';
+
+function selectLevel(n) {
+  selectedLevel = n;
+  document.querySelectorAll('.admin-level-option').forEach(el => {
+    el.classList.toggle('active', +el.dataset.level === n);
+  });
+}
+
+// Cargar temas
+fetch(`${API}/api/temas`).then(r=>r.json()).then(j => {
+  if (j.success) {
+    const sel = document.getElementById('tema');
+    j.data.forEach(t => {
+      const opt = document.createElement('option');
+      opt.value = t.nombre;
+      opt.textContent = t.nombre;
+      sel.appendChild(opt);
+    });
+  }
+}).catch(() => {});
+
+async function handleUpload(e) {
+  e.preventDefault();
+  const btn = document.getElementById('submitBtn');
+  const msg = document.getElementById('uploadMsg');
+  btn.disabled = true; btn.textContent = 'Subiendo...';
+  msg.innerHTML = '<span style="color:var(--ash)">Subiendo archivo a la nube...</span>';
+
+  const formData = new FormData();
+  formData.append('titulo', document.getElementById('titulo').value.trim());
+  formData.append('materia', document.getElementById('materia').value);
+  formData.append('tema', document.getElementById('tema').value);
+  formData.append('tipo', document.getElementById('tipo').value);
+  formData.append('nivel', selectedLevel);
+  formData.append('descripcion', document.getElementById('descripcion').value.trim());
+  formData.append('archivo', document.getElementById('archivo').files[0]);
+  if (document.getElementById('portada').files[0]) {
+    formData.append('portada', document.getElementById('portada').files[0]);
+  }
+
+  const result = await uploadResource(formData);
+  if (result.success) {
+    msg.innerHTML = '<span style="color:#00c864">✅ Recurso subido exitosamente. <a href="dashboard.html" style="color:var(--craft)">Ir al dashboard</a></span>';
+    document.getElementById('uploadForm').reset();
+  } else {
+    msg.innerHTML = `<span style="color:#ff5050">❌ Error: ${result.error || 'Error al subir'}</span>`;
+  }
+  btn.disabled = false; btn.textContent = '📤 Subir Recurso';
+}
+</script>
+</body>
+</html>

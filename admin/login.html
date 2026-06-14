@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KodamiAdmin — Login</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=Rajdhani:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../css/styles.css">
+</head>
+<body class="admin-body">
+<div class="admin-container">
+  <div class="admin-card" style="max-width:400px;margin:60px auto;">
+    <div class="admin-title">⚔ KodamiAdmin</div>
+    <p style="text-align:center;color:var(--ash);font-size:.85rem;margin-bottom:24px;">Acceso exclusivo para docentes</p>
+    <input class="admin-input" id="emailInput" type="email" placeholder="Correo electrónico" autocomplete="email">
+    <input class="admin-input" id="passInput" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <div id="loginError" style="color:#ff5050;font-size:.8rem;margin-bottom:12px;display:none;"></div>
+    <button class="admin-btn" id="loginBtn" onclick="handleLogin()" style="width:100%;">Ingresar</button>
+  </div>
+</div>
+<script src="../js/auth.js"></script>
+<script>
+const API = 'https://kodami-api.kodami-academy24.workers.dev';
+async function handleLogin() {
+  const email = document.getElementById('emailInput').value.trim();
+  const password = document.getElementById('passInput').value.trim();
+  const error = document.getElementById('loginError');
+  const btn = document.getElementById('loginBtn');
+  if (!email || !password) { error.textContent = 'Completa todos los campos'; error.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = 'Ingresando...';
+  const result = await login(email, password);
+  if (result.success) {
+    error.style.display = 'none';
+    window.location.href = 'dashboard.html';
+  } else {
+    error.textContent = result.error;
+    error.style.display = 'block';
+    btn.disabled = false; btn.textContent = 'Ingresar';
+  }
+}
+document.getElementById('passInput').addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+</script>
+</body>
+</html>
