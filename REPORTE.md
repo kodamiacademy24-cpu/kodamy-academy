@@ -14,6 +14,7 @@
 - `GET /api/recursos/:id` — detalle recurso (público)
 - `GET /api/recurso/:id/archivo` — servir archivo desde R2 (público)
 - `GET /api/recurso/:id/portada` — servir portada desde R2 (público) ✨ nuevo
+- `POST /api/upload` — ahora acepta `url` para recursos embed (YouTube, GeoGebra, Khan Academy, Desmos)
 - `GET /api/recursos/admin` — listar todos (requiere auth)
 - `PUT /api/recursos/:id` — editar recurso (requiere auth)
 - `DELETE /api/recursos/:id` — baja lógica (requiere auth)
@@ -43,8 +44,10 @@
 - Visor modal con pestañas: Vista Previa + ⬇ Descargar ✨
 - Portada visible como background-image centrada en cada tarjeta ✨
 - Fallback a icono si no hay portada o falla la carga ✨
+- **Embeds externos:** YouTube, GeoGebra, Khan Academy, Desmos en iframe inline ✨
 - Responsive mobile completo
 - Admin panel con fondo samurai + estrellas ✨
+- Admin upload: toggle "Archivo" / "Enlace externo" con auto-detección ✨
 - Login, upload, dashboard con editar/eliminar
 
 ## 📋 Pendiente
@@ -64,6 +67,7 @@
 5. Optimizar fondo.png (~893KB) para velocidad de carga
 6. Mejorar seguridad: bcrypt para passwords, JWT con HMAC real
 7. Agregar analytics de uso
+8. Más embeddings: Wikipedia, Wolfram Alpha, Quizlet, Educaplay
 
 ## 🔑 Credenciales Docente
 
