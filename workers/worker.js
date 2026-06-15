@@ -143,6 +143,25 @@ export default {
         return json({ success: true, data: { titulo, tipo: tipoReal, url: rutaArchivo } }, cors);
       }
 
+      // GET /api/debug/groq — Probar Groq directamente desde el worker
+      if (path === '/api/debug/groq' && request.method === 'GET') {
+        try {
+          const r = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.GROQ_KEY}` },
+            body: JSON.stringify({ model: 'llama-3.1-8b-instant', messages: [{ role: 'user', content: 'Hola' }], max_tokens: 50 })
+          });
+          if (!r.ok) {
+            const txt = await r.text();
+            return json({ success: false, status: r.status, body: txt.substring(0, 500) }, cors);
+          }
+          const d = await r.json();
+          return json({ success: true, respuesta: d.choices?.[0]?.message?.content, modelo: d.model }, cors);
+        } catch (e) {
+          return json({ success: false, error: e.message }, cors);
+        }
+      }
+
       // GET /api/recurso/:id/archivo — Sirve archivo desde R2
       const fileMatch = path.match(/^\/api\/recurso\/(\d+)\/archivo$/);
       if (fileMatch && request.method === 'GET') {
@@ -164,6 +183,23 @@ export default {
           'Cache-Control': 'public, max-age=86400',
           'Access-Control-Allow-Origin': '*',
           'Content-Disposition': rec.tipo === 'juego' && rec.extension !== 'apk' ? 'inline' : 'inline'
+        });
+        return new Response(obj.body, { headers });
+      }
+
+      // GET /api/recurso/:id/portada — Sirve portada desde R2
+      const portadaMatch = path.match(/^\/api\/recurso\/(\d+)\/portada$/);
+      if (portadaMatch && request.method === 'GET') {
+        const rec = await env.DB.prepare('SELECT portada_url FROM recursos WHERE id = ? AND activo = 1').bind(portadaMatch[1]).first();
+        if (!rec || !rec.portada_url) return json({ success: false, error: 'Sin portada' }, cors, 404);
+        const obj = await env.RECURSOS.get(rec.portada_url);
+        if (!obj) return json({ success: false, error: 'Portada no encontrada' }, cors, 404);
+        const ext = rec.portada_url.split('.').pop().toLowerCase();
+        const mimeTypes = { png:'image/png', jpg:'image/jpeg', jpeg:'image/jpeg', gif:'image/gif', webp:'image/webp' };
+        const headers = new Headers({
+          'Content-Type': mimeTypes[ext] || 'image/webp',
+          'Cache-Control': 'public, max-age=86400',
+          'Access-Control-Allow-Origin': '*'
         });
         return new Response(obj.body, { headers });
       }
@@ -198,19 +234,19 @@ export default {
 
         // RAG: buscar en chunks
         const chunks = await buscarChunks(env, message);
-        const contextoLibros = chunks.map(c => `[${c.libro}] ${c.contenido}`).join('\n\n');
 
-        // Recursos locales relevantes
-        let recursosLocales = [];
-        try {
-          const { results } = await env.DB.prepare(
-            'SELECT titulo, tipo, descripcion, archivo_url FROM recursos WHERE materia = ? AND activo = 1 ORDER BY visitas DESC LIMIT 5'
-          ).bind('matematicas').all();
-          recursosLocales = results;
-        } catch {}
-        const recursosCtx = recursosLocales.map(r => `- ${r.titulo} (${r.tipo})`).join('\n');
+        if (chunks.length > 0) {
+          const contextoLibros = chunks.map(c => `[${c.libro}] ${c.contenido}`).join('\n\n');
+          let recursosLocales = [];
+          try {
+            const { results } = await env.DB.prepare(
+              'SELECT titulo, tipo, descripcion, archivo_url FROM recursos WHERE materia = ? AND activo = 1 ORDER BY visitas DESC LIMIT 5'
+            ).bind('matematicas').all();
+            recursosLocales = results;
+          } catch {}
+          const recursosCtx = recursosLocales.map(r => `- ${r.titulo} (${r.tipo})`).join('\n');
 
-        const systemPrompt = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
+          const systemPrompt = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
 Responde SOLO con la información de los fragmentos de libros provistos.
 Si la respuesta no está en los fragmentos, di que no lo encontraste en los libros.
 No inventes información ni URLs. Sé breve (máx 4 oraciones). Usa emojis samurai.
@@ -218,16 +254,54 @@ ${imageContext ? '\n## IMAGEN:\n' + imageContext : ''}
 ${contextoLibros ? '\n## LIBROS:\n' + contextoLibros : '\n## Aún no hay libros cargados en mi cerebro.'}
 ${recursosCtx ? '\n## RECURSOS KODAMI:\n' + recursosCtx : ''}`;
 
-        const messages = [
-          { role: 'system', content: systemPrompt },
-          ...history.slice(-8),
-          { role: 'user', content: message || 'Analiza esta imagen' }
-        ];
+          const messages = [
+            { role: 'system', content: systemPrompt },
+            ...history.slice(-8),
+            { role: 'user', content: message || 'Analiza esta imagen' }
+          ];
 
-        let respuesta = await tryGroq(env.GROQ_KEY, messages, 'llama-3.1-8b-instant', 800, 0.7);
-        if (!respuesta && env.GROQ_KEY_BACKUP) respuesta = await tryGroq(env.GROQ_KEY_BACKUP, messages, 'llama3-8b-8192', 800, 0.7);
-        if (!respuesta && env.geminiapi1) respuesta = await tryGemini(env.geminiapi1, systemPrompt, message || 'Analiza la imagen', history);
-        if (!respuesta) respuesta = await tryWorkersAI(env, messages);
+          let respuesta = await tryGroq(env.GROQ_KEY, messages, 'llama-3.1-8b-instant', 800, 0.7);
+          if (!respuesta && env.GROQ_KEY_BACKUP) respuesta = await tryGroq(env.GROQ_KEY_BACKUP, messages, 'llama3-8b-8192', 800, 0.7);
+          if (!respuesta && env.geminiapi1) respuesta = await tryGemini(env.geminiapi1, systemPrompt, message || 'Analiza la imagen', history);
+          if (!respuesta) respuesta = await tryWorkersAI(env, messages);
+          if (!respuesta) respuesta = 'Los modelos están recargando, guerrero. Intenta en un momento. ⚔️';
+
+          // Si la IA no encontró la respuesta en los chunks, caer a web
+          if (/no (lo |la )?encontr[ée]|no encontr[ée]|no (est[áa]|estaba)|no (hay|tengo)/i.test(respuesta)) {
+            let resultadosWeb = await buscarWeb(message);
+            const webCtx2 = resultadosWeb.length > 0
+              ? '\n## WEB:\n' + resultadosWeb.map(r => `- ${r.titulo}: ${r.url} (${r.fuente})`).join('\n')
+              : '';
+            const novaPrompt2 = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
+No encontraste la respuesta en los libros, pero consultaste la web para ayudar.
+Proporciona información actualizada con URLs verificadas. NUNCA inventes enlaces.
+Sé breve (3-4 oraciones). Usa emojis samurai.
+${webCtx2}`;
+            if (env.geminiapi1) respuesta = await tryGemini(env.geminiapi1, novaPrompt2, message, history);
+            if (!respuesta && env.GROQ_KEY) respuesta = await tryGroq(env.GROQ_KEY, [{ role: 'system', content: novaPrompt2 }, ...history.slice(-8), { role: 'user', content: message }], 'llama-3.1-8b-instant', 600, 0.7);
+            if (!respuesta) respuesta = await tryWorkersAI(env, [{ role: 'system', content: novaPrompt2 }, ...history.slice(-8), { role: 'user', content: message }]);
+            if (!respuesta) respuesta = 'Los modelos están recargando, guerrero. Intenta en un momento. ⚔️';
+          }
+
+          return json({ choices: [{ message: { content: respuesta } }] }, cors);
+        }
+
+        // Fallback a búsqueda web (sin chunks)
+        let resultadosWeb = await buscarWeb(message);
+        const webCtx = resultadosWeb.length > 0
+          ? '\n## WEB:\n' + resultadosWeb.map(r => `- ${r.titulo}: ${r.url} (${r.fuente})`).join('\n')
+          : '\n## Sin resultados web confiables.';
+
+        const novaPrompt = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
+No hay libros cargados con esta información, pero consultaste la web para ayudar.
+Proporciona información actualizada con URLs verificadas.
+NUNCA inventes enlaces. Sé breve (3-4 oraciones). Usa emojis samurai.
+${webCtx}`;
+
+        let respuesta = null;
+        if (env.geminiapi1) respuesta = await tryGemini(env.geminiapi1, novaPrompt, message, history);
+        if (!respuesta && env.GROQ_KEY) respuesta = await tryGroq(env.GROQ_KEY, [{ role: 'system', content: novaPrompt }, ...history.slice(-8), { role: 'user', content: message }], 'llama-3.1-8b-instant', 600, 0.7);
+        if (!respuesta) respuesta = await tryWorkersAI(env, [{ role: 'system', content: novaPrompt }, ...history.slice(-8), { role: 'user', content: message }]);
         if (!respuesta) respuesta = 'Los modelos están recargando, guerrero. Intenta en un momento. ⚔️';
 
         return json({ choices: [{ message: { content: respuesta } }] }, cors);
@@ -320,18 +394,38 @@ async function verifyJWT(token) {
 async function buscarChunks(env, query) {
   if (!query || !env.DB) return [];
   try {
-    const palabras = query.toLowerCase()
+    let palabras = query.toLowerCase()
       .replace(/[¿?¡!,.;:()\-"'«»]/g, '')
-      .replace(/[áä]/g, 'a').replace(/[éë]/g, 'e').replace(/[íï]/g, 'i')
-      .replace(/[óö]/g, 'o').replace(/[úü]/g, 'u').replace(/ñ/g, 'n')
       .split(' ').filter(p => p.length > 3).slice(0, 5);
     if (palabras.length === 0) return [];
-    const conditions = palabras.map(() => 'contenido LIKE ?').join(' OR ');
-    const params = palabras.map(p => `%${p}%`);
-    const { results } = await env.DB.prepare(
-      `SELECT libro, contenido FROM cerebro_chunks WHERE materia = 'matematicas' AND (${conditions}) LIMIT 10`
-    ).bind(...params).all();
-    return results || [];
+    const toGlob = w => {
+      const s = w.replace(/[áä]/g, 'a').replace(/[éë]/g, 'e').replace(/[íï]/g, 'i')
+        .replace(/[óö]/g, 'o').replace(/[úü]/g, 'u').replace(/ñ/g, 'n');
+      return '*'+s.replace(/a/g,'[aá]').replace(/e/g,'[eé]').replace(/i/g,'[ií]')
+                  .replace(/o/g,'[oó]').replace(/u/g,'[uú]').replace(/n/g,'[nñ]')+'*';
+    };
+    const globs = palabras.map(toGlob);
+    const cond = globs.map(() => 'contenido GLOB ?').join(' OR ');
+    let { results } = await env.DB.prepare(
+      `SELECT libro, chunk_index, contenido FROM cerebro_chunks WHERE materia = 'matematicas' AND (${cond}) LIMIT 20`
+    ).bind(...globs).all();
+    if (!results || results.length === 0) return [];
+    // Quitar TOC, basura, cortos
+    const limpios = results.filter(c => {
+      const t = c.contenido;
+      if (t.length < 400) return false;
+      if (t.includes('Índice General')) return false;
+      if (/\.{30,}/.test(t)) return false;
+      return true;
+    });
+    // Score: preferir chunks que contengan MÁS palabras de la query
+    const scored = limpios.map(c => {
+      const lower = c.contenido.toLowerCase();
+      const score = palabras.filter(p => lower.includes(p)).length;
+      return { ...c, score };
+    });
+    scored.sort((a, b) => b.score - a.score);
+    return scored.slice(0, 4).map(c => ({ libro: c.libro, contenido: c.contenido.substring(0, 1200) }));
   } catch { return []; }
 }
 

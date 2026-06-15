@@ -66,8 +66,9 @@ function renderRecursos() {
   }
   grid.innerHTML = data.map((r, i) => `
     <div class="resource-card" style="animation-delay:${i*.06}s" onclick="abrirRecurso(${r.id})">
-      <div class="card-thumb">
-        <div class="card-icon">${typeIcons[r.tipo] || '📁'}</div>
+      <div class="card-thumb${r.portada_url ? ' has-portada' : ''}">
+        ${r.portada_url ? `<img src="${API}/api/recurso/${r.id}/portada" alt="${r.titulo}" class="card-portada" loading="lazy">`
+          : `<div class="card-icon">${typeIcons[r.tipo] || '📁'}</div>`}
         <span class="card-badge badge-${r.tipo}">${(r.tipo||'').toUpperCase()}</span>
       </div>
       <div class="card-body">
