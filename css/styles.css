@@ -111,9 +111,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:18px 60px;display:fl
 .card-thumb::after{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center,rgba(200,169,110,.05) 0%,transparent 70%);}
 .card-icon{font-size:3.2rem;position:relative;z-index:1;filter:drop-shadow(0 0 14px rgba(200,169,110,.2));transition:transform .3s,filter .3s;}
 .resource-card:hover .card-icon{transform:scale(1.12);filter:drop-shadow(0 0 22px rgba(200,169,110,.45));}
-.card-portada{width:100%;height:100%;object-fit:cover;transition:transform .3s ease;}
+.card-portada{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;transition:transform .3s ease;}
 .resource-card:hover .card-portada{transform:scale(1.08);}
 .card-thumb.has-portada::after{background:linear-gradient(to top,rgba(0,0,0,.7) 0%,transparent 50%);}
+.card-thumb.has-portada .card-fallback{display:none!important;}
 .card-badge{position:absolute;top:10px;right:10px;font-size:.55rem;letter-spacing:2px;text-transform:uppercase;padding:3px 9px;font-weight:700;border-radius:4px;z-index:2;}
 .badge-juego{background:rgba(0,200,100,.12);color:#00c864;border:1px solid rgba(0,200,100,.25);}
 .badge-libro{background:rgba(255,80,80,.12);color:#ff5050;border:1px solid rgba(255,80,80,.25);}
