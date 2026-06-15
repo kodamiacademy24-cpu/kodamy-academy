@@ -6,6 +6,7 @@ const typeLabels = { juego:'Juego', libro:'Libro', video:'Video', audio:'Audio',
 let recursos = [];
 let currentMateria = 'matematicas';
 let currentCat = 'all';
+let currentResource = null;
 
 const materiaInfo = {
   matematicas: { title:'Matemáticas', jp:'数学' },
@@ -94,34 +95,68 @@ async function abrirRecurso(id) {
 }
 
 async function mostrarVisor(r) {
+  currentResource = r;
   const overlay = document.getElementById('modalOverlay') || crearModal();
   const title = document.getElementById('modalTitle');
-  const body = document.getElementById('modalBody');
-  const tabs = document.getElementById('modalTabs');
   if (title) title.textContent = r.titulo;
-  if (body) {
-    const archivoUrl = `${API}/api/recurso/${r.id}/archivo`;
-    body.innerHTML = '';
-    if (r.tipo === 'video') {
-      body.innerHTML = `<video controls autoplay style="width:100%;height:100%"><source src="${archivoUrl}" type="video/${r.extension}"></video>`;
-    } else if (r.tipo === 'audio') {
-      body.innerHTML = `<audio controls autoplay style="width:100%"><source src="${archivoUrl}" type="audio/${r.extension}"></audio>`;
-    } else if (r.tipo === 'imagen') {
-      body.innerHTML = `<img src="${archivoUrl}" alt="${r.titulo}" style="max-width:100%;max-height:100%;object-fit:contain;margin:auto;">`;
-    } else if (r.tipo === 'juego' && r.extension === 'html') {
-      body.innerHTML = `<iframe src="${archivoUrl}" sandbox="allow-scripts allow-same-origin" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
-    } else if (r.tipo === 'juego' && r.extension === 'apk') {
-      body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:40px;gap:20px;"><div style="font-size:4rem">📱</div><p style="color:var(--ash);font-size:1rem">APK listo para descargar</p><a href="${archivoUrl}" download="${r.titulo}.apk" class="btn-primary"><span>⬇ Descargar APK</span></a></div>`;
-    } else if (r.extension === 'pdf') {
-      body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(archivoUrl)}&embedded=true" style="width:100%;height:100%;border:none;"></iframe>`;
-    } else {
-      body.innerHTML = `<iframe src="${archivoUrl}" style="width:100%;height:100%;border:none;"></iframe>`;
-    }
-    if (r.extension === 'pptx' || r.extension === 'ppt') {
-      body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(archivoUrl)}" style="width:100%;height:100%;border:none;"></iframe>`;
-    }
-  }
+  // Reset tabs: preview activo, download inactivo
+  document.querySelectorAll('.modal-tab').forEach((t, i) => t.classList.toggle('active', i === 0));
+  renderPreview(r);
   if (overlay) overlay.classList.add('open');
+}
+
+function cambiarVista(tab) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.toggle('active', t.textContent.includes(tab === 'preview' ? 'Vista' : 'Descargar')));
+  if (tab === 'preview') renderPreview(currentResource);
+  else renderDownload(currentResource);
+}
+
+function renderPreview(r) {
+  const body = document.getElementById('modalBody');
+  if (!body) return;
+  const archivoUrl = `${API}/api/recurso/${r.id}/archivo`;
+  body.style.overflow = r.tipo === 'video' || r.tipo === 'audio' || r.tipo === 'imagen' ? 'hidden' : 'hidden';
+  if (r.tipo === 'video') {
+    body.innerHTML = `<video controls autoplay style="width:100%;height:100%"><source src="${archivoUrl}" type="video/${r.extension}"></video>`;
+  } else if (r.tipo === 'audio') {
+    body.innerHTML = `<audio controls autoplay style="width:100%"><source src="${archivoUrl}" type="audio/${r.extension}"></audio>`;
+  } else if (r.tipo === 'imagen') {
+    body.innerHTML = `<img src="${archivoUrl}" alt="${r.titulo}" style="max-width:100%;max-height:100%;object-fit:contain;margin:auto;">`;
+  } else if (r.tipo === 'juego' && r.extension === 'html') {
+    body.innerHTML = `<iframe src="${archivoUrl}" sandbox="allow-scripts allow-same-origin" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+  } else if (r.tipo === 'juego' && r.extension === 'apk') {
+    body.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:40px;gap:20px;"><div style="font-size:4rem">📱</div><p style="color:var(--ash);font-size:1rem">APK listo para descargar</p><a href="${archivoUrl}" download="${r.titulo}.apk" class="btn-primary"><span>⬇ Descargar APK</span></a></div>`;
+  } else if (r.extension === 'pdf') {
+    body.innerHTML = `<iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(archivoUrl)}&embedded=true" style="width:100%;height:100%;border:none;"></iframe>`;
+  } else {
+    body.innerHTML = `<iframe src="${archivoUrl}" style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+  if (r.extension === 'pptx' || r.extension === 'ppt') {
+    body.innerHTML = `<iframe src="https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(archivoUrl)}" style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+}
+
+function renderDownload(r) {
+  const body = document.getElementById('modalBody');
+  if (!body) return;
+  body.style.overflow = 'auto';
+  const archivoUrl = `${API}/api/recurso/${r.id}/archivo`;
+  body.innerHTML = `
+    <div class="modal-download">
+      <div class="download-icon">${typeIcons[r.tipo] || '📄'}</div>
+      <div class="download-info">
+        <div class="download-label">Nombre</div>
+        <div class="download-value">${r.titulo}</div>
+        <div class="download-label">Tipo</div>
+        <div class="download-value">${typeLabels[r.tipo] || r.tipo}</div>
+        <div class="download-label">Extensión</div>
+        <div class="download-value">.${r.extension}</div>
+      </div>
+      <a href="${archivoUrl}" download="${r.titulo}.${r.extension}" class="download-btn">
+        <span>⬇ Descargar ${r.titulo}.${r.extension}</span>
+      </a>
+    </div>
+  `;
 }
 
 function crearModal() {

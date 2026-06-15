@@ -235,6 +235,13 @@ a.chat-link:hover{opacity:.8;}
 .modal-tab{padding:10px 20px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--ash);cursor:pointer;border-bottom:2px solid transparent;transition:all .3s;}
 .modal-tab.active{color:var(--craft);border-bottom-color:var(--craft);}
 .modal-tab:hover{color:var(--craft);}
+.modal-download{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:40px 20px;gap:24px;text-align:center;}
+.download-icon{font-size:4rem;filter:drop-shadow(0 0 20px rgba(200,169,110,.2));}
+.download-info{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;text-align:left;max-width:400px;width:100%;padding:20px;background:rgba(255,255,255,.02);border-radius:8px;border:1px solid rgba(200,169,110,.1);}
+.download-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--craft);opacity:.6;}
+.download-value{font-size:.9rem;color:var(--white);word-break:break-all;}
+.download-btn{display:inline-flex;align-items:center;gap:8px;background:var(--craft);color:var(--black);padding:14px 28px;border-radius:8px;font-family:'Rajdhani',sans-serif;font-size:.85rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;text-decoration:none;transition:background .3s,transform .2s;}
+.download-btn:hover{background:var(--craft-light);transform:scale(1.03);}
 
 /* ADMIN */
 .admin-body{background:var(--deep);}
