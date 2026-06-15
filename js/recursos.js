@@ -68,7 +68,7 @@ function renderRecursos() {
   grid.innerHTML = data.map((r, i) => `
     <div class="resource-card" style="animation-delay:${i*.06}s" onclick="abrirRecurso(${r.id})">
       <div class="card-thumb${r.portada_url ? ' has-portada' : ''}">
-        ${r.portada_url ? `<img src="${API}/api/recurso/${r.id}/portada" alt="${r.titulo}" class="card-portada" loading="lazy" onerror="this.remove();this.parentElement.classList.remove('has-portada');this.parentElement.querySelector('.card-icon').style.display=''"><div class="card-icon" style="display:none">${typeIcons[r.tipo] || '📁'}</div>`
+        ${r.portada_url ? `<img src="${API}/api/recurso/${r.id}/portada" alt="${r.titulo}" class="card-portada" loading="lazy" onerror="this.remove();this.parentElement.classList.remove('has-portada');this.parentElement.querySelector('.card-fallback').style.display=''"><div class="card-icon card-fallback" style="display:none">${typeIcons[r.tipo] || '📁'}</div>`
           : `<div class="card-icon">${typeIcons[r.tipo] || '📁'}</div>`}
         <span class="card-badge badge-${r.tipo}">${(r.tipo||'').toUpperCase()}</span>
       </div>
