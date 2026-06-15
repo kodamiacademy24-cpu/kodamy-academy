@@ -26,6 +26,8 @@
 </style>
 </head>
 <body class="admin-body">
+<div class="hero-bg" id="heroBg"></div>
+<canvas id="starsCanvas"></canvas>
 <div class="admin-container">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
     <div class="nav-logo">Kodami<span>Admin</span></div>
@@ -168,7 +170,9 @@ function eliminar(id) {
 
 function logout() { localStorage.removeItem('kodami_token'); localStorage.removeItem('kodami_user'); window.location.href = 'login.html'; }
 
-loadDashboard();
+  loadDashboard();
 </script>
+<script>const isMobile = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);</script>
+<script src="../js/app.js"></script>
 </body>
 </html>
