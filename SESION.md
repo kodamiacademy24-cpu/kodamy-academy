@@ -29,7 +29,7 @@ Endpoint completo: ver workers/worker.js
 | js/recursos.js | Grid dinámico + filtros + visor modal + descarga |
 | js/auth.js | Login/logout JWT |
 | admin/login.html | Login docente (con fondo samurai) |
-| admin/upload.html | Subir recursos con auto-detección tipo + IA genera descripción |
+| admin/upload.html | Subir recursos (archivo o URL embed) con auto-detección tipo + IA genera descripción |
 | admin/dashboard.html | Panel con editar/baja de recursos |
 | workers/worker.js | Worker unificado Cloudflare |
 | workers/wrangler.toml | Config R2, D1, AI bindings |
@@ -51,6 +51,9 @@ Endpoint completo: ver workers/worker.js
 7. **Inputs más visibles** — Opacidad de fondo subida de 3% a 8%
 8. **Cursor invisible en admin** — Corregido: solo se agrega `body.has-mouse` (cursor:none) si `cursorWrap` existe en la página
 9. **Ruta fondo.png dinámica** — `app.js` detecta si la URL contiene `/admin/` y usa `../fondo.png` en vez de `fondo.png`
+10. **Soporte para recursos embed** — Admin.upload.html ahora tiene toggle "📤 Archivo" / "🔗 Enlace externo". Al pegar una URL, el backend auto-detecta la plataforma (YouTube, GeoGebra, Khan Academy, Desmos) y guarda el recurso con `tipo='embed'`. El frontend renderiza el contenido en un iframe inline en el modal, sin redirigir a páginas externas
+11. **Función `embedIframe()`** — En `js/recursos.js`, convierte URLs de YouTube a embed (`youtube.com/embed/VIDEO_ID`), GeoGebra a embed clásico, y pasa URLs directas para Khan Academy y Desmos
+12. **Pestaña Descargar para embeds** — Muestra la URL original + botón "Abrir en nueva pestaña" en vez del botón de descarga de archivos
 
 ### Problemas Conocidos
 1. **Password en texto plano** en D1 — Mejorar con bcrypt si hay más docentes
@@ -67,6 +70,8 @@ Endpoint completo: ver workers/worker.js
 - JWT simple (base64 + firma dummy): suficiente para un solo docente
 - CORS abierto: necesario porque frontend está en GitHub Pages (dominio diferente)
 - app.js compartido entre main y admin: null checks en todos los elementos para evitar errores
+- Embed externo como `tipo='embed'`: sin cambios en schema DB, reusa columna `archivo_url` para la URL y `extension` para el tipo (youtube, geogebra, etc.)
+- `embedIframe()` en frontend convierte URLs a formato embed; si no reconoce el dominio, usa la URL directa en iframe
 
 ## Para Mañana
 Ver REPORTE.md para el plan detallado. Puntos clave:
