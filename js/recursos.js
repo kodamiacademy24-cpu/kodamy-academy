@@ -1,7 +1,8 @@
 // KODAMI RECURSOS — Carga dinámica desde API
 
-const typeIcons = { juego:'⚔️', libro:'📚', video:'🎬', audio:'🎵', documento:'📄', imagen:'🖼️' };
-const typeLabels = { juego:'Juego', libro:'Libro', video:'Video', audio:'Audio', documento:'Documento', imagen:'Imagen' };
+const typeIcons = { juego:'⚔️', libro:'📚', video:'🎬', audio:'🎵', documento:'📄', imagen:'🖼️', embed:'🔗' };
+const typeLabels = { juego:'Juego', libro:'Libro', video:'Video', audio:'Audio', documento:'Documento', imagen:'Imagen', embed:'Enlace' };
+const embedIcons = { youtube:'🎬', geogebra:'📐', khanacademy:'📚', desmos:'📊' };
 
 let recursos = [];
 let currentMateria = 'matematicas';
@@ -116,6 +117,14 @@ function renderPreview(r) {
   if (!body) return;
   const archivoUrl = `${API}/api/recurso/${r.id}/archivo`;
   body.style.overflow = r.tipo === 'video' || r.tipo === 'audio' || r.tipo === 'imagen' ? 'hidden' : 'hidden';
+
+  // MODO EMBED: renderizar iframe con embed URL
+  if (r.tipo === 'embed' || r.tipo === 'enlace') {
+    body.style.overflow = 'hidden';
+    body.innerHTML = embedIframe(r.extension, r.archivo_url, r.titulo);
+    return;
+  }
+
   if (r.tipo === 'video') {
     body.innerHTML = `<video controls autoplay style="width:100%;height:100%"><source src="${archivoUrl}" type="video/${r.extension}"></video>`;
   } else if (r.tipo === 'audio') {
@@ -136,10 +145,50 @@ function renderPreview(r) {
   }
 }
 
+function embedIframe(ext, url, titulo) {
+  if (ext === 'youtube') {
+    const vid = url.match(/(?:v=|youtu\.be\/|\/embed\/)([a-zA-Z0-9_-]{11})/)?.[1] || '';
+    return vid ? `<iframe src="https://www.youtube.com/embed/${vid}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>` : `<iframe src="${url}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+  if (ext === 'geogebra') {
+    const id = url.match(/\/m\/([a-zA-Z0-9]+)/)?.[1] || url.match(/\/classic\/([a-zA-Z0-9]+)/)?.[1] || '';
+    return id ? `<iframe src="https://www.geogebra.org/classic/embed/${id}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>` : `<iframe src="${url}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+  if (ext === 'khanacademy') {
+    return `<iframe src="${url}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+  if (ext === 'desmos') {
+    return `<iframe src="${url}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+  }
+  return `<iframe src="${url}" allowfullscreen style="width:100%;height:100%;border:none;"></iframe>`;
+}
+
 function renderDownload(r) {
   const body = document.getElementById('modalBody');
   if (!body) return;
   body.style.overflow = 'auto';
+
+  // EMBED: mostrar enlace externo en vez de descarga
+  if (r.tipo === 'embed' || r.tipo === 'enlace') {
+    body.innerHTML = `
+      <div class="modal-download">
+        <div class="download-icon">${embedIcons[r.extension] || typeIcons[r.tipo] || '🔗'}</div>
+        <div class="download-info">
+          <div class="download-label">Nombre</div>
+          <div class="download-value">${r.titulo}</div>
+          <div class="download-label">Tipo</div>
+          <div class="download-value">${(r.extension||'').toUpperCase()} · ${typeLabels[r.tipo] || r.tipo}</div>
+          <div class="download-label">URL</div>
+          <div class="download-value" style="font-size:.75rem;word-break:break-all;">${r.archivo_url}</div>
+        </div>
+        <a href="${r.archivo_url}" target="_blank" rel="noopener" class="download-btn">
+          <span>🔗 Abrir en nueva pestaña</span>
+        </a>
+      </div>
+    `;
+    return;
+  }
+
   const archivoUrl = `${API}/api/recurso/${r.id}/archivo`;
   body.innerHTML = `
     <div class="modal-download">

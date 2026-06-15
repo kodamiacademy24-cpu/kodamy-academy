@@ -113,9 +113,29 @@ export default {
         const descripcion = formData.get('descripcion')?.trim() || '';
         const archivo = formData.get('archivo');
         const portada = formData.get('portada');
+        const embedUrl = formData.get('url')?.trim();
 
-        if (!titulo || !archivo) return json({ success: false, error: 'Título y archivo requeridos' }, cors, 400);
+        if (!titulo) return json({ success: false, error: 'Título requerido' }, cors, 400);
 
+        // MODO EMBED: URL externa
+        if (embedUrl) {
+          const domain = new URL(embedUrl).hostname.replace('www.', '');
+          let embedTipo = 'embed';
+          let ext = 'link';
+          if (domain.includes('youtube') || domain.includes('youtu.be')) ext = 'youtube';
+          else if (domain.includes('geogebra')) ext = 'geogebra';
+          else if (domain.includes('khanacademy')) ext = 'khanacademy';
+          else if (domain.includes('desmos')) ext = 'desmos';
+          else if (embedUrl.match(/\.(mp4|webm)$/i)) ext = 'video';
+          const tipoReal = tipo || embedTipo;
+          const descFinal = descripcion || `Recurso externo de ${tema || 'matemáticas'}: ${titulo}`;
+          await env.DB.prepare('INSERT INTO recursos (titulo, materia, tema, tipo, extension, descripcion, descripcion_ia, portada_url, archivo_url, nivel, docente_id) VALUES (?,?,?,?,?,?,?,?,?,?,?)')
+            .bind(titulo, materia, tema, tipoReal, ext, descFinal, descripcion ? 0 : 1, '', embedUrl, nivel, payload.id).run();
+          return json({ success: true, data: { titulo, tipo: tipoReal, embed: true, url: embedUrl } }, cors);
+        }
+
+        // MODO ARCHIVO
+        if (!archivo) return json({ success: false, error: 'Archivo o URL requerido' }, cors, 400);
         const ext = archivo.name.split('.').pop().toLowerCase();
         const tiposPermitidos = ['pdf','epub','html','zip','apk','mp4','webm','mp3','wav','png','jpg','jpeg','gif','webp','doc','docx','ppt','pptx','txt'];
         if (!tiposPermitidos.includes(ext)) return json({ success: false, error: `Extensión .${ext} no permitida` }, cors, 400);

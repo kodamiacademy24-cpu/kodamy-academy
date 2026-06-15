@@ -33,25 +33,38 @@
         <option value="">Seleccionar tema...</option>
       </select>
 
-      <label class="admin-label">Tipo de recurso</label>
-      <select class="admin-select" id="tipo">
-        <option value="">Auto-detectar por extensión</option>
-        <option value="juego">Juego (HTML, APK, ZIP)</option>
-        <option value="libro">Libro (PDF, EPUB)</option>
-        <option value="video">Video (MP4, WebM)</option>
-        <option value="audio">Audio (MP3, WAV)</option>
-        <option value="documento">Documento (PDF, DOC, PPT)</option>
-        <option value="imagen">Imagen (PNG, JPG, GIF)</option>
-      </select>
-
-      <label class="admin-label">Archivo *</label>
-      <div class="admin-file-input">
-        <input type="file" id="archivo" required accept=".pdf,.epub,.html,.zip,.apk,.mp4,.webm,.mp3,.wav,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.ppt,.pptx,.txt">
+      <div class="admin-toggle" style="display:flex;gap:8px;margin-bottom:16px;">
+        <div class="admin-toggle-option active" data-mode="file" onclick="toggleModo('file')">📤 Archivo</div>
+        <div class="admin-toggle-option" data-mode="embed" onclick="toggleModo('embed')">🔗 Enlace externo</div>
       </div>
 
-      <label class="admin-label">Portada / Captura</label>
-      <div class="admin-file-input">
-        <input type="file" id="portada" accept="image/*">
+      <div id="fileSection">
+        <label class="admin-label">Tipo de recurso</label>
+        <select class="admin-select" id="tipo">
+          <option value="">Auto-detectar por extensión</option>
+          <option value="juego">Juego (HTML, APK, ZIP)</option>
+          <option value="libro">Libro (PDF, EPUB)</option>
+          <option value="video">Video (MP4, WebM)</option>
+          <option value="audio">Audio (MP3, WAV)</option>
+          <option value="documento">Documento (PDF, DOC, PPT)</option>
+          <option value="imagen">Imagen (PNG, JPG, GIF)</option>
+        </select>
+
+        <label class="admin-label">Archivo *</label>
+        <div class="admin-file-input">
+          <input type="file" id="archivo" required accept=".pdf,.epub,.html,.zip,.apk,.mp4,.webm,.mp3,.wav,.png,.jpg,.jpeg,.gif,.webp,.doc,.docx,.ppt,.pptx,.txt">
+        </div>
+
+        <label class="admin-label">Portada / Captura</label>
+        <div class="admin-file-input">
+          <input type="file" id="portada" accept="image/*">
+        </div>
+      </div>
+
+      <div id="embedSection" style="display:none;">
+        <label class="admin-label">URL del recurso *</label>
+        <input class="admin-input" id="embedUrl" type="url" placeholder="https://www.geogebra.org/m/...  o  https://youtube.com/watch?v=...">
+        <div id="embedPreview" style="font-size:.8rem;color:var(--ash);margin-bottom:12px;"></div>
       </div>
 
       <label class="admin-label">Descripción (opcional — si se deja vacía, la IA la genera)</label>
@@ -76,6 +89,7 @@
 <script>
 const API = 'https://kodami-api.kodami-academy24.workers.dev';
 let selectedLevel = 1;
+let modo = 'file';
 
 if (!isAuthenticated()) window.location.href = 'login.html';
 
@@ -85,6 +99,31 @@ function selectLevel(n) {
     el.classList.toggle('active', +el.dataset.level === n);
   });
 }
+
+function toggleModo(m) {
+  modo = m;
+  document.querySelectorAll('.admin-toggle-option').forEach(el => el.classList.toggle('active', el.dataset.mode === m));
+  document.getElementById('fileSection').style.display = m === 'file' ? 'block' : 'none';
+  document.getElementById('embedSection').style.display = m === 'embed' ? 'block' : 'none';
+  document.getElementById('archivo').required = m === 'file';
+  document.getElementById('embedUrl').required = m === 'embed';
+}
+
+// Auto-detectar tipo al escribir URL
+document.getElementById('embedUrl')?.addEventListener('input', function() {
+  const preview = document.getElementById('embedPreview');
+  const url = this.value.trim();
+  if (!url) { preview.textContent = ''; return; }
+  try {
+    const domain = new URL(url).hostname.replace('www.', '');
+    if (domain.includes('youtube') || domain.includes('youtu.be')) preview.textContent = '🎬 YouTube — Video';
+    else if (domain.includes('geogebra')) preview.textContent = '📐 GeoGebra — Gráfica interactiva';
+    else if (domain.includes('khanacademy')) preview.textContent = '📚 Khan Academy — Ejercicio/Video';
+    else if (domain.includes('desmos')) preview.textContent = '📊 Desmos — Calculadora gráfica';
+    else if (url.match(/\.(mp4|webm)$/i)) preview.textContent = '🎬 Video directo';
+    else preview.textContent = '🔗 Enlace externo';
+  } catch { preview.textContent = '⚠️ URL no válida'; }
+});
 
 // Cargar temas
 fetch(`${API}/api/temas`).then(r=>r.json()).then(j => {
@@ -110,12 +149,17 @@ async function handleUpload(e) {
   formData.append('titulo', document.getElementById('titulo').value.trim());
   formData.append('materia', document.getElementById('materia').value);
   formData.append('tema', document.getElementById('tema').value);
-  formData.append('tipo', document.getElementById('tipo').value);
   formData.append('nivel', selectedLevel);
   formData.append('descripcion', document.getElementById('descripcion').value.trim());
-  formData.append('archivo', document.getElementById('archivo').files[0]);
-  if (document.getElementById('portada').files[0]) {
-    formData.append('portada', document.getElementById('portada').files[0]);
+
+  if (modo === 'file') {
+    formData.append('tipo', document.getElementById('tipo').value);
+    formData.append('archivo', document.getElementById('archivo').files[0]);
+    if (document.getElementById('portada').files[0]) {
+      formData.append('portada', document.getElementById('portada').files[0]);
+    }
+  } else {
+    formData.append('url', document.getElementById('embedUrl').value.trim());
   }
 
   const result = await uploadResource(formData);
