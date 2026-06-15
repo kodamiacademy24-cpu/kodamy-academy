@@ -3,8 +3,9 @@
 // Fondo
 const heroBg = document.getElementById('heroBg');
 const bgImg = new Image();
+const basePath = window.location.pathname.includes('/admin/') ? '../' : '';
 bgImg.onload = () => heroBg && heroBg.classList.add('loaded');
-bgImg.src = 'fondo.png';
+bgImg.src = basePath + 'fondo.png';
 
 // Mascotas
 ['mascotSensei','mascotNova'].forEach(id => {
@@ -17,38 +18,42 @@ bgImg.src = 'fondo.png';
 
 // Cursor
 if (!isMobile) {
-  document.body.classList.add('has-mouse');
   const wrap = document.getElementById('cursorWrap');
-  let mx=0, my=0, cx=0, cy=0, cursorState='idle';
-  document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
-  (function anim(){
-    cx += (mx-cx)*.2; cy += (my-cy)*.2;
-    if (wrap) wrap.style.transform = `translate(${cx}px,${cy}px)`;
-    requestAnimationFrame(anim);
-  })();
-  const hoverSel = 'a,button,.materia-tab,.pill,.card-btn,.search-btn,.chat-send,.chat-action-btn,.chat-action-icon,.mascot,[onclick]';
-  const textSel = 'input,textarea';
-  document.addEventListener('mouseover', e => {
-    if (e.target.closest(textSel)) setState('text-mode');
-    else if (e.target.closest(hoverSel)) setState('hovering');
-    else setState('idle');
-  });
-  document.addEventListener('mouseout', e => { if (!e.relatedTarget || !e.relatedTarget.closest) setState('idle'); });
-  document.querySelectorAll('input,textarea').forEach(el => {
-    el.addEventListener('focus', () => setState('text-mode'));
-    el.addEventListener('blur', () => setState('idle'));
-  });
-  function setState(s) {
-    if (cursorState === s || !wrap) return;
-    wrap.classList.remove(cursorState);
-    wrap.classList.add(s);
-    cursorState = s;
+  if (wrap) {
+    document.body.classList.add('has-mouse');
+    let mx=0, my=0, cx=0, cy=0, cursorState='idle';
+    document.addEventListener('mousemove', e => { mx=e.clientX; my=e.clientY; });
+    (function anim(){
+      cx += (mx-cx)*.2; cy += (my-cy)*.2;
+      wrap.style.transform = `translate(${cx}px,${cy}px)`;
+      requestAnimationFrame(anim);
+    })();
+    const hoverSel = 'a,button,.materia-tab,.pill,.card-btn,.search-btn,.chat-send,.chat-action-btn,.chat-action-icon,.mascot,[onclick]';
+    const textSel = 'input,textarea';
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest(textSel)) setState('text-mode');
+      else if (e.target.closest(hoverSel)) setState('hovering');
+      else setState('idle');
+    });
+    document.addEventListener('mouseout', e => { if (!e.relatedTarget || !e.relatedTarget.closest) setState('idle'); });
+    document.querySelectorAll('input,textarea').forEach(el => {
+      el.addEventListener('focus', () => setState('text-mode'));
+      el.addEventListener('blur', () => setState('idle'));
+    });
+    function setState(s) {
+      if (cursorState === s) return;
+      wrap.classList.remove(cursorState);
+      wrap.classList.add(s);
+      cursorState = s;
+    }
+    window.setCursorDragging = d => setState(d?'dragging':'idle');
+    window.setCursorTheme = a => {
+      a === 'nova' ? wrap.classList.add('nova-active') : wrap.classList.remove('nova-active');
+    };
+  } else {
+    window.setCursorDragging = () => {};
+    window.setCursorTheme = () => {};
   }
-  window.setCursorDragging = d => setState(d?'dragging':'idle');
-  window.setCursorTheme = a => {
-    if (!wrap) return;
-    a === 'nova' ? wrap.classList.add('nova-active') : wrap.classList.remove('nova-active');
-  };
 } else {
   window.setCursorDragging = () => {};
   window.setCursorTheme = () => {};
