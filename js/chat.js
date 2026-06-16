@@ -185,68 +185,102 @@ async function sendMsg(agent) {
   }
 }
 
-// Voice Recognition
+// Voice Recognition — estilo WhatsApp (presiona + suelta)
 let recognition = null;
+let pressingMic = false;
+let speechTranscript = '';
 
-function getMicBtn() {
+function checkSpeechAPI() {
+  return ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
+}
+
+function setupMicButtons() {
+  document.querySelectorAll('.chat-action-icon').forEach(btn => {
+    btn.addEventListener('mousedown', startPTT);
+    btn.addEventListener('touchstart', startPTT, { passive: true });
+  });
+  document.addEventListener('mouseup', stopPTT);
+  document.addEventListener('touchend', stopPTT);
+}
+
+function getActiveMicBtn() {
   return document.querySelector(`#chat${activeAgent==='sensei'?'Sensei':'Nova'} .chat-action-icon`);
 }
 
-function toggleVoice() {
-  if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    addMsg(activeAgent, 'Entrada por voz no disponible. Usa Chrome o Edge. 🎤', true, true);
+function cleanMicState() {
+  recognition = null;
+  pressingMic = false;
+  const b = getActiveMicBtn();
+  if (b) b.classList.remove('recording');
+}
+
+function startPTT(e) {
+  if (pressingMic || recognition) return;
+  if (!checkSpeechAPI()) {
+    addMsg(activeAgent, 'Voz no disponible. Usa Chrome o Edge. 🎤', true, true);
     return;
   }
-  if (recognition) {
-    recognition.stop();
-    recognition = null;
-    const btn = getMicBtn();
-    if (btn) btn.classList.remove('recording');
-    return;
-  }
+  pressingMic = true;
+  speechTranscript = '';
+  const btn = e.currentTarget || getActiveMicBtn();
+  if (btn) btn.classList.add('recording');
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  recognition = new SpeechRecognition();
+  try {
+    recognition = new SpeechRecognition();
+  } catch {
+    addMsg(activeAgent, 'Voz no soportada en este navegador. 🎤', true, true);
+    cleanMicState(); return;
+  }
   recognition.lang = 'es-MX';
   recognition.continuous = true;
-  recognition.interimResults = true;
-  let finalTranscript = '';
+  recognition.interimResults = false;
 
-  recognition.onresult = (event) => {
-    const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
-    const input = document.getElementById(inputId);
-    if (!input) return;
-    let interim = '';
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const r = event.results[i];
-      if (r.isFinal) finalTranscript += r[0].transcript + ' ';
-      else interim += r[0].transcript;
+  recognition.onresult = (ev) => {
+    for (let i = ev.resultIndex; i < ev.results.length; i++) {
+      if (ev.results[i].isFinal) {
+        speechTranscript += ev.results[i][0].transcript + ' ';
+      }
     }
-    input.value = finalTranscript + interim;
   };
 
-  recognition.onerror = (e) => {
-    recognition = null;
-    const btn = getMicBtn();
-    if (btn) btn.classList.remove('recording');
-    if (e.error === 'not-allowed') addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
-    else if (e.error !== 'no-speech' && e.error !== 'aborted') addMsg(activeAgent, `Error de micrófono: ${e.error} 🎤`, true, true);
+  recognition.onerror = (ev) => {
+    if (ev.error === 'no-speech' || ev.error === 'aborted') {
+      cleanMicState(); return;
+    }
+    if (ev.error === 'not-allowed') {
+      addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
+    } else {
+      addMsg(activeAgent, `Error mic: ${ev.error} 🎤`, true, true);
+    }
+    cleanMicState();
   };
 
   recognition.onend = () => {
-    if (finalTranscript.trim()) {
+    if (pressingMic && speechTranscript.trim()) {
+      // Recognition ended while still pressing — send what we have
       const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
       const input = document.getElementById(inputId);
-      if (input) { input.value = finalTranscript.trim(); sendMsg(activeAgent); }
+      if (input) { input.value = speechTranscript.trim(); sendMsg(activeAgent); }
     }
-    recognition = null;
-    const btn = getMicBtn();
-    if (btn) btn.classList.remove('recording');
+    // If user already released (pressingMic = false by stopPTT), result was already sent below
+    cleanMicState();
+    speechTranscript = '';
   };
 
   recognition.start();
-  const btn = getMicBtn();
-  if (btn) btn.classList.add('recording');
-  finalTranscript = '';
+}
+
+function stopPTT() {
+  if (!recognition) return;
+  pressingMic = false; // mark released before stopping so onend knows
+  recognition.stop();
+  // Send transcript if we have anything
+  if (speechTranscript.trim()) {
+    const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
+    const input = document.getElementById(inputId);
+    if (input) { input.value = speechTranscript.trim(); sendMsg(activeAgent); }
+  }
 }
 
 function toggleTTS() {
@@ -301,3 +335,6 @@ if (chatImageInput) {
     e.target.value = '';
   });
 }
+
+// Inicializar botones de voz
+setupMicButtons();
