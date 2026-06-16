@@ -186,9 +186,14 @@ async function sendMsg(agent) {
 }
 
 // Voice Recognition — estilo WhatsApp (presiona + suelta)
+// Soporte dual: SpeechRecognition nativo (Chrome/Edge) + MediaRecorder + Groq Whisper (Brave/Firefox/Safari)
 let recognition = null;
+let mediaRecorder = null;
+let audioChunks = [];
+let audioStream = null;
 let pressingMic = false;
 let speechTranscript = '';
+let usingWhisper = false;
 
 function checkSpeechAPI() {
   return ('webkitSpeechRecognition' in window) || ('SpeechRecognition' in window);
@@ -209,27 +214,78 @@ function getActiveMicBtn() {
 
 function cleanMicState() {
   recognition = null;
+  mediaRecorder = null;
+  audioChunks = [];
+  audioStream = null;
   pressingMic = false;
+  usingWhisper = false;
   const b = getActiveMicBtn();
   if (b) b.classList.remove('recording');
 }
 
-function startPTT(e) {
-  if (pressingMic || recognition) return;
-  if (!checkSpeechAPI()) {
-    addMsg(activeAgent, 'Voz no disponible. Usa Chrome o Edge. 🎤', true, true);
-    return;
+// === MODO WHISPER (MediaRecorder + Groq) ===
+async function startWhisper() {
+  try {
+    audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    audioChunks = [];
+    const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus')
+      ? 'audio/webm;codecs=opus' : 'audio/webm';
+    mediaRecorder = new MediaRecorder(audioStream, { mimeType: mime });
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size) audioChunks.push(e.data); };
+    mediaRecorder.start();
+    pressingMic = true;
+    usingWhisper = true;
+    const b = getActiveMicBtn();
+    if (b) b.classList.add('recording');
+  } catch (e) {
+    if (e.name === 'NotAllowedError') {
+      addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
+    } else {
+      addMsg(activeAgent, 'Error al acceder al micrófono. 🎤', true, true);
+    }
+    pressingMic = false;
   }
-  pressingMic = true;
-  speechTranscript = '';
+}
 
+async function stopWhisper() {
+  if (!mediaRecorder || mediaRecorder.state !== 'recording') return;
+  mediaRecorder.stop();
+  audioStream?.getTracks().forEach(t => t.stop());
+  mediaRecorder.onstop = async () => {
+    const blob = new Blob(audioChunks, { type: mediaRecorder.mimeType });
+    const reader = new FileReader();
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1];
+      try {
+        const res = await fetch(`${API}/api/stt`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ audio: base64 })
+        });
+        const json = await res.json();
+        if (json.success && json.data.text.trim()) {
+          const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
+          const input = document.getElementById(inputId);
+          if (input) { input.value = json.data.text.trim(); sendMsg(activeAgent); }
+        }
+      } catch {
+        addMsg(activeAgent, 'Error al transcribir audio. Intenta de nuevo. 🎤', true, true);
+      }
+      cleanMicState();
+    };
+    reader.readAsDataURL(blob);
+  };
+}
+
+// === MODO NATIVO (SpeechRecognition) ===
+function startNativeSpeech() {
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   try {
     recognition = new SpeechRecognition();
   } catch {
-    addMsg(activeAgent, 'Voz no soportada en este navegador. 🎤', true, true);
-    cleanMicState(); return;
+    return false;
   }
+  speechTranscript = '';
   recognition.lang = 'es-MX';
   recognition.continuous = true;
   recognition.interimResults = false;
@@ -244,12 +300,16 @@ function startPTT(e) {
 
   recognition.onerror = (ev) => {
     if (ev.error === 'aborted') { cleanMicState(); return; }
+    if (ev.error === 'network') {
+      // SpeechRecognition bloqueado (Firefox, Brave, firewall) -> fallback a Whisper
+      cleanMicState();
+      startWhisper();
+      return;
+    }
     if (ev.error === 'not-allowed') {
       addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
     } else if (ev.error === 'audio-capture') {
       addMsg(activeAgent, 'No se detectó micrófono. Conecta uno e intenta de nuevo. 🎤', true, true);
-    } else if (ev.error === 'network') {
-      addMsg(activeAgent, 'Servicio de voz bloqueado por firewall, VPN o proxy. Desactívalos o prueba con otra red. 🌐🎤', true, true);
     } else if (ev.error !== 'no-speech') {
       addMsg(activeAgent, 'Error de micrófono. Revisa tu micrófono y conexión. 🎤', true, true);
     }
@@ -267,15 +327,31 @@ function startPTT(e) {
   };
 
   recognition.start();
+  pressingMic = true;
   requestAnimationFrame(() => {
     if (recognition) {
       const b = getActiveMicBtn();
       if (b) b.classList.add('recording');
     }
   });
+  return true;
+}
+
+// === PUNTO DE ENTRADA ÚNICO ===
+function startPTT(e) {
+  if (pressingMic || recognition || mediaRecorder) return;
+  if (checkSpeechAPI()) {
+    if (!startNativeSpeech()) startWhisper();
+  } else {
+    startWhisper();
+  }
 }
 
 function stopPTT() {
+  if (mediaRecorder && mediaRecorder.state === 'recording') {
+    stopWhisper();
+    return;
+  }
   if (!recognition) return;
   pressingMic = false;
   recognition.stop();

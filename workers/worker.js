@@ -410,6 +410,27 @@ ${webCtx}`;
       }
 
       // ============================================
+      // STT (Speech-to-Text con Groq Whisper)
+      // ============================================
+      if (path === '/api/stt' && request.method === 'POST') {
+        const { audio } = await request.json();
+        if (!audio) return json({ success: false, error: 'Audio requerido' }, cors, 400);
+        const binary = Uint8Array.from(atob(audio), c => c.charCodeAt(0));
+        const form = new FormData();
+        form.append('model', 'whisper-large-v3-turbo');
+        form.append('language', 'es');
+        form.append('file', new Blob([binary], { type: 'audio/webm' }), 'audio.webm');
+        const res = await fetch('https://api.groq.com/openai/v1/audio/transcriptions', {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${env.GROQ_KEY}` },
+          body: form
+        });
+        if (!res.ok) return json({ success: false, error: 'Whisper falló' }, cors, 500);
+        const data = await res.json();
+        return json({ success: true, data: { text: data.text } }, cors);
+      }
+
+      // ============================================
       // SEARCH (búsqueda web directa)
       // ============================================
       if (path === '/api/search' && request.method === 'GET') {
