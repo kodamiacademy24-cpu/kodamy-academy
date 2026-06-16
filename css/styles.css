@@ -186,6 +186,11 @@ footer{position:relative;z-index:2;padding:34px 60px;border-top:1px solid rgba(2
 .chat-link{color:var(--craft);text-decoration:underline;}
 .chat-nova .chat-link{color:var(--blue);}
 a.chat-link:hover{opacity:.8;}
+.msg-ai h2{font-size:.85rem;color:var(--gold);margin:6px 0 3px;font-family:var(--font-deco);}
+.msg-ai h3{font-size:.8rem;color:var(--gold);margin:5px 0 2px;font-family:var(--font-deco);opacity:.9;}
+.msg-ai strong{color:var(--text);}
+.msg-ai ul{margin:4px 0 6px;padding-left:16px;}
+.msg-ai li{margin:2px 0;list-style:disc;line-height:1.5;}
 .msg-typing{display:flex;gap:4px;padding:12px 14px;align-items:center;}
 .typing-dot{width:5px;height:5px;border-radius:50%;animation:typingBounce 1.2s ease-in-out infinite;}
 .chat-sensei .typing-dot{background:var(--craft);}

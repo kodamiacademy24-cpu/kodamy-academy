@@ -4,7 +4,7 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
     const path = url.pathname;
-    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' };
+    const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Authorization' };
     if (request.method === 'OPTIONS') return new Response(null, { headers: cors });
 
     try {
@@ -267,9 +267,19 @@ export default {
           const recursosCtx = recursosLocales.map(r => `- ${r.titulo} (${r.tipo})`).join('\n');
 
           const systemPrompt = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
-Responde SOLO con la información de los fragmentos de libros provistos.
-Si la respuesta no está en los fragmentos, di que no lo encontraste en los libros.
-No inventes información ni URLs. Sé breve (máx 4 oraciones). Usa emojis samurai.
+Usa los fragmentos de libros como referencia principal, pero si la pregunta va más allá de lo que cubren, complementa con tu conocimiento general.
+NUNCA inventes información ni URLs falsas. Usa emojis.
+
+Estructura tus respuestas así:
+## Título del tema
+**Explicación:** una o dos oraciones claras y directas.
+- Punto clave 1
+- Punto clave 2
+- Punto clave 3
+**Ejemplo:** si aplica, un ejemplo breve y práctico.
+📚 **Fuentes:** libros consultados
+
+Al final, verifica cada afirmación contra los fragmentos de libros. Si algo no se sostiene con los libros ni con tu conocimiento seguro, omítelo. Marca con "(según fuentes externas)" lo que no venga de los libros.
 ${imageContext ? '\n## IMAGEN:\n' + imageContext : ''}
 ${contextoLibros ? '\n## LIBROS:\n' + contextoLibros : '\n## Aún no hay libros cargados en mi cerebro.'}
 ${recursosCtx ? '\n## RECURSOS KODAMI:\n' + recursosCtx : ''}`;
@@ -294,8 +304,18 @@ ${recursosCtx ? '\n## RECURSOS KODAMI:\n' + recursosCtx : ''}`;
               : '';
             const novaPrompt2 = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
 No encontraste la respuesta en los libros, pero consultaste la web para ayudar.
-Proporciona información actualizada con URLs verificadas. NUNCA inventes enlaces.
-Sé breve (3-4 oraciones). Usa emojis samurai.
+Proporciona información actualizada con URLs verificadas. NUNCA inventes enlaces. Usa emojis.
+
+Estructura tus respuestas así:
+## Título del tema
+**Explicación:** una o dos oraciones claras.
+- Punto clave 1
+- Punto clave 2
+- Punto clave 3
+🌐 **Fuentes:**
+- [título](url) — dominio
+
+Al final, verifica cada afirmación contra los resultados web. Si algo no se sostiene, omítelo.
 ${webCtx2}`;
             if (env.geminiapi1) respuesta = await tryGemini(env.geminiapi1, novaPrompt2, message, history);
             if (!respuesta && env.GROQ_KEY) respuesta = await tryGroq(env.GROQ_KEY, [{ role: 'system', content: novaPrompt2 }, ...history.slice(-8), { role: 'user', content: message }], 'llama-3.1-8b-instant', 600, 0.7);
@@ -314,8 +334,18 @@ ${webCtx2}`;
 
         const novaPrompt = `Eres Sensei 🦝⚔️, Guardián del Conocimiento de KodamiAcademy.
 No hay libros cargados con esta información, pero consultaste la web para ayudar.
-Proporciona información actualizada con URLs verificadas.
-NUNCA inventes enlaces. Sé breve (3-4 oraciones). Usa emojis samurai.
+Proporciona información actualizada con URLs verificadas. NUNCA inventes enlaces. Usa emojis.
+
+Estructura tus respuestas así:
+## Título del tema
+**Explicación:** una o dos oraciones claras.
+- Punto clave 1
+- Punto clave 2
+- Punto clave 3
+🌐 **Fuentes:**
+- [título](url) — dominio
+
+Al final, verifica cada afirmación contra los resultados web. Si algo no se sostiene, omítelo.
 ${webCtx}`;
 
         let respuesta = null;
@@ -341,8 +371,16 @@ ${webCtx}`;
 
         const systemPrompt = `Eres Nova 💙🚀, Exploradora Digital de KodamiAcademy.
 Proporciona información actualizada y URLs funcionales verificadas.
-NUNCA inventes enlaces. Prioriza fuentes .edu, .gob, .org.
-Sé breve (3-4 oraciones). Usa emojis (💙🔍🎯).
+NUNCA inventes enlaces. Prioriza fuentes .edu, .gob, .org. Usa emojis (💙🔍🎯).
+
+Estructura tus respuestas así:
+## Título del tema
+**Resumen:** una oración clara.
+- Recurso 1 — descripción breve
+- Recurso 2 — descripción breve
+- Recurso 3 — descripción breve
+🌐 **Fuentes:**
+- [título](url) — dominio
 ${webCtx}`;
 
         const messages = [
@@ -358,8 +396,7 @@ ${webCtx}`;
         if (!respuesta) respuesta = 'Los buscadores están recargando. Intenta en un momento. 💙';
 
         // Renderizar links
-        const conLinks = respuesta.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" class="chat-link">$1</a>');
-        return json({ choices: [{ message: { content: conLinks } }] }, cors);
+        return json({ choices: [{ message: { content: respuesta } }] }, cors);
       }
 
       // ============================================

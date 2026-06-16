@@ -71,6 +71,20 @@ function renderLinks(texto) {
   );
 }
 
+function renderMarkdown(text) {
+  text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  text = text.replace(/^\- (.+)$/gm, '<li>$1</li>');
+  text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
+  text = '<p>' + text + '</p>';
+  text = text.replace(/<p><\/(h2|h3|ul)>/g, '</$1>');
+  text = text.replace(/<(h2|h3|ul)><\/p>/g, '<$1>');
+  text = text.replace(/<p><\/p>/g, '');
+  text = text.replace(/\n/g, '');
+  return text;
+}
+
 function addMsg(agent, text, isAi, isError = false) {
   const msgs = document.getElementById(`chatMessages${agent==='sensei'?'Sensei':'Nova'}`);
   if (!msgs) return;
@@ -80,7 +94,7 @@ function addMsg(agent, text, isAi, isError = false) {
     const badge = agent === 'nova'
       ? '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--blue);opacity:.7;display:block;margin-bottom:3px;">💙 Nova</span>'
       : '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--craft);opacity:.7;display:block;margin-bottom:3px;">⚔ Sensei</span>';
-    div.innerHTML = badge + (isAi ? renderLinks(text) : text);
+    div.innerHTML = badge + (isAi ? renderMarkdown(renderLinks(text)) : text);
   } else {
     div.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
   }
@@ -185,7 +199,7 @@ function toggleVoice() {
     const text = event.results[0][0].transcript;
     const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
     const input = document.getElementById(inputId);
-    if (input) input.value = text;
+    if (input) { input.value = text; sendMsg(activeAgent); }
     recognition = null;
   };
   recognition.onerror = () => { recognition = null; };
@@ -195,8 +209,11 @@ function toggleVoice() {
 
 function toggleTTS() {
   voiceEnabled = !voiceEnabled;
-  const btn = document.getElementById('ttsToggle');
-  if (btn) btn.style.opacity = voiceEnabled ? '1' : '0.4';
+  const opacity = voiceEnabled ? '1' : '0.4';
+  ['ttsToggle', 'ttsToggle2'].forEach(id => {
+    const btn = document.getElementById(id);
+    if (btn) btn.style.opacity = opacity;
+  });
 }
 
 // Image upload in chat
