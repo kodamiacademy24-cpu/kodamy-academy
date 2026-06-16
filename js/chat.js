@@ -72,17 +72,26 @@ function renderLinks(texto) {
 }
 
 function renderMarkdown(text) {
+  text = text.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank" rel="noopener" class="chat-link">$1</a>');
+  text = text.replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener" class="chat-link">$1</a>');
   text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   text = text.replace(/^## (.+)$/gm, '<h2>$1</h2>');
   text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-  text = text.replace(/^\- (.+)$/gm, '<li>$1</li>');
-  text = text.replace(/(<li>.*<\/li>\n?)+/g, '<ul>$&</ul>');
-  text = '<p>' + text + '</p>';
-  text = text.replace(/<p><\/(h2|h3|ul)>/g, '</$1>');
-  text = text.replace(/<(h2|h3|ul)><\/p>/g, '<$1>');
-  text = text.replace(/<p><\/p>/g, '');
-  text = text.replace(/\n/g, '');
-  return text;
+  let lines = text.split('\n');
+  let result = [], inUl = false;
+  for (let line of lines) {
+    let bullet = line.match(/^\- (.+)/);
+    if (bullet) {
+      if (!inUl) { result.push('<ul>'); inUl = true; }
+      result.push('<li>' + bullet[1] + '</li>');
+    } else {
+      if (inUl) { result.push('</ul>'); inUl = false; }
+      if (line.trim() && !line.match(/^<\/?h[23]>/)) result.push('<p>' + line + '</p>');
+      else if (line.trim()) result.push(line);
+    }
+  }
+  if (inUl) result.push('</ul>');
+  return result.join('\n');
 }
 
 function addMsg(agent, text, isAi, isError = false) {
@@ -94,7 +103,7 @@ function addMsg(agent, text, isAi, isError = false) {
     const badge = agent === 'nova'
       ? '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--blue);opacity:.7;display:block;margin-bottom:3px;">💙 Nova</span>'
       : '<span style="font-size:.5rem;letter-spacing:1px;text-transform:uppercase;color:var(--craft);opacity:.7;display:block;margin-bottom:3px;">⚔ Sensei</span>';
-    div.innerHTML = badge + (isAi ? renderMarkdown(renderLinks(text)) : text);
+    div.innerHTML = badge + (isAi ? renderMarkdown(text) : text);
   } else {
     div.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
   }
