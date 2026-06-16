@@ -222,8 +222,6 @@ function startPTT(e) {
   }
   pressingMic = true;
   speechTranscript = '';
-  const btn = e.currentTarget || getActiveMicBtn();
-  if (btn) btn.classList.add('recording');
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   try {
@@ -250,8 +248,10 @@ function startPTT(e) {
       addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
     } else if (ev.error === 'audio-capture') {
       addMsg(activeAgent, 'No se detectó micrófono. Conecta uno e intenta de nuevo. 🎤', true, true);
+    } else if (ev.error === 'network') {
+      addMsg(activeAgent, 'Servicio de voz bloqueado por firewall, VPN o proxy. Desactívalos o prueba con otra red. 🌐🎤', true, true);
     } else if (ev.error !== 'no-speech') {
-      addMsg(activeAgent, `Error mic: ${ev.error} 🎤`, true, true);
+      addMsg(activeAgent, 'Error de micrófono. Revisa tu micrófono y conexión. 🎤', true, true);
     }
     cleanMicState();
   };
@@ -267,6 +267,12 @@ function startPTT(e) {
   };
 
   recognition.start();
+  requestAnimationFrame(() => {
+    if (recognition) {
+      const b = getActiveMicBtn();
+      if (b) b.classList.add('recording');
+    }
+  });
 }
 
 function stopPTT() {
