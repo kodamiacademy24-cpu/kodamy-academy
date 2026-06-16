@@ -188,32 +188,65 @@ async function sendMsg(agent) {
 // Voice Recognition
 let recognition = null;
 
+function getMicBtn() {
+  return document.querySelector(`#chat${activeAgent==='sensei'?'Sensei':'Nova'} .chat-action-icon`);
+}
+
 function toggleVoice() {
   if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
-    alert('La entrada por voz no está disponible en este navegador. Usa Chrome o Edge.');
+    addMsg(activeAgent, 'Entrada por voz no disponible. Usa Chrome o Edge. 🎤', true, true);
     return;
   }
   if (recognition) {
     recognition.stop();
     recognition = null;
+    const btn = getMicBtn();
+    if (btn) btn.classList.remove('recording');
     return;
   }
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
   recognition = new SpeechRecognition();
   recognition.lang = 'es-MX';
-  recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.continuous = true;
+  recognition.interimResults = true;
+  let finalTranscript = '';
 
   recognition.onresult = (event) => {
-    const text = event.results[0][0].transcript;
     const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
     const input = document.getElementById(inputId);
-    if (input) { input.value = text; sendMsg(activeAgent); }
-    recognition = null;
+    if (!input) return;
+    let interim = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const r = event.results[i];
+      if (r.isFinal) finalTranscript += r[0].transcript + ' ';
+      else interim += r[0].transcript;
+    }
+    input.value = finalTranscript + interim;
   };
-  recognition.onerror = () => { recognition = null; };
-  recognition.onend = () => { recognition = null; };
+
+  recognition.onerror = (e) => {
+    recognition = null;
+    const btn = getMicBtn();
+    if (btn) btn.classList.remove('recording');
+    if (e.error === 'not-allowed') addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
+    else if (e.error !== 'no-speech' && e.error !== 'aborted') addMsg(activeAgent, `Error de micrófono: ${e.error} 🎤`, true, true);
+  };
+
+  recognition.onend = () => {
+    if (finalTranscript.trim()) {
+      const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
+      const input = document.getElementById(inputId);
+      if (input) { input.value = finalTranscript.trim(); sendMsg(activeAgent); }
+    }
+    recognition = null;
+    const btn = getMicBtn();
+    if (btn) btn.classList.remove('recording');
+  };
+
   recognition.start();
+  const btn = getMicBtn();
+  if (btn) btn.classList.add('recording');
+  finalTranscript = '';
 }
 
 function toggleTTS() {
