@@ -245,25 +245,23 @@ function startPTT(e) {
   };
 
   recognition.onerror = (ev) => {
-    if (ev.error === 'no-speech' || ev.error === 'aborted') {
-      cleanMicState(); return;
-    }
+    if (ev.error === 'aborted') { cleanMicState(); return; }
     if (ev.error === 'not-allowed') {
       addMsg(activeAgent, 'Permiso de micrófono denegado. Concede acceso e intenta de nuevo. 🎤', true, true);
-    } else {
+    } else if (ev.error === 'audio-capture') {
+      addMsg(activeAgent, 'No se detectó micrófono. Conecta uno e intenta de nuevo. 🎤', true, true);
+    } else if (ev.error !== 'no-speech') {
       addMsg(activeAgent, `Error mic: ${ev.error} 🎤`, true, true);
     }
     cleanMicState();
   };
 
   recognition.onend = () => {
-    if (pressingMic && speechTranscript.trim()) {
-      // Recognition ended while still pressing — send what we have
+    if (speechTranscript.trim()) {
       const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
       const input = document.getElementById(inputId);
       if (input) { input.value = speechTranscript.trim(); sendMsg(activeAgent); }
     }
-    // If user already released (pressingMic = false by stopPTT), result was already sent below
     cleanMicState();
     speechTranscript = '';
   };
@@ -273,14 +271,8 @@ function startPTT(e) {
 
 function stopPTT() {
   if (!recognition) return;
-  pressingMic = false; // mark released before stopping so onend knows
+  pressingMic = false;
   recognition.stop();
-  // Send transcript if we have anything
-  if (speechTranscript.trim()) {
-    const inputId = `chatInput${activeAgent==='sensei'?'Sensei':'Nova'}`;
-    const input = document.getElementById(inputId);
-    if (input) { input.value = speechTranscript.trim(); sendMsg(activeAgent); }
-  }
 }
 
 function toggleTTS() {
