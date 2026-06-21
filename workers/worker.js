@@ -97,6 +97,13 @@ export default {
         }
         if (!valid) return json({ success: false, error: 'Credenciales inválidas' }, cors, 401);
 
+        // Auto-migración: si la contraseña aún es texto plano, hashearla en este mismo login
+        if (!docente.password_hash.includes(':')) {
+          const hashed = await hashPassword(password);
+          await env.DB.prepare('UPDATE docentes SET password_hash = ? WHERE id = ?')
+            .bind(hashed, docente.id).run();
+        }
+
         const token = await createJWT({ id: docente.id, nombre: docente.nombre, email: docente.email }, env.JWT_SECRET);
         return json({ success: true, data: { token, nombre: docente.nombre, email: docente.email } }, cors);
       }
@@ -108,19 +115,7 @@ export default {
         return json({ success: true, data: payload }, cors);
       }
 
-      // POST /api/auth/setup-hash — migra contraseña de texto plano a PBKDF2
-      // Úsalo UNA VEZ desde el panel de docente o con curl. Luego ya no es necesario.
-      if (path === '/api/auth/setup-hash' && request.method === 'POST') {
-        const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
-        if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
-        const { password } = await request.json();
-        if (!password) return json({ success: false, error: 'Password requerido' }, cors, 400);
-        const hashed = await hashPassword(password);
-        await env.DB.prepare('UPDATE docentes SET password_hash = ? WHERE id = ?')
-          .bind(hashed, payload.id).run();
-        return json({ success: true, message: 'Contraseña migrada a hash seguro' }, cors);
-      }
+      // POST /api/auth/setup-hash — eliminado, la migración es automática en el primer login
 
       // ============================================
       // UPLOAD
