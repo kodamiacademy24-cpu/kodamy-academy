@@ -35,7 +35,7 @@ export default {
       // Admin: listar todos (incluyendo inactivos) — requiere auth
       if (path === '/api/recursos/admin' && request.method === 'GET') {
         const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''));
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
         if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
         const { results } = await env.DB.prepare('SELECT * FROM recursos ORDER BY created_at DESC LIMIT 200').all();
         return json({ success: true, data: results }, cors);
@@ -45,7 +45,7 @@ export default {
       const putMatch = path.match(/^\/api\/recursos\/(\d+)$/);
       if (putMatch && request.method === 'PUT') {
         const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''));
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
         if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
         const body = await request.json();
         const { titulo, descripcion, tipo, tema, nivel } = body;
@@ -58,7 +58,7 @@ export default {
       // DELETE /api/recursos/:id — baja lógica (requiere auth)
       if (putMatch && request.method === 'DELETE') {
         const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''));
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
         if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
         await env.DB.prepare('UPDATE recursos SET activo=0 WHERE id=?').bind(putMatch[1]).run();
         return json({ success: true }, cors);
@@ -84,16 +84,42 @@ export default {
         const { email, password } = await request.json();
         if (!email || !password) return json({ success: false, error: 'Credenciales requeridas' }, cors, 400);
         const docente = await env.DB.prepare('SELECT * FROM docentes WHERE email = ?').bind(email).first();
-        if (!docente || docente.password_hash !== password) return json({ success: false, error: 'Credenciales inválidas' }, cors, 401);
-        const token = await createJWT({ id: docente.id, nombre: docente.nombre, email: docente.email });
+        if (!docente) return json({ success: false, error: 'Credenciales inválidas' }, cors, 401);
+
+        // Soporte dual: hash PBKDF2 (nuevo) o texto plano (legacy, migración pendiente)
+        let valid = false;
+        if (docente.password_hash.includes(':')) {
+          // Formato nuevo: salt:hash
+          valid = await verifyPassword(password, docente.password_hash);
+        } else {
+          // Formato legacy: texto plano — comparación directa
+          valid = docente.password_hash === password;
+        }
+        if (!valid) return json({ success: false, error: 'Credenciales inválidas' }, cors, 401);
+
+        const token = await createJWT({ id: docente.id, nombre: docente.nombre, email: docente.email }, env.JWT_SECRET);
         return json({ success: true, data: { token, nombre: docente.nombre, email: docente.email } }, cors);
       }
 
       if (path === '/api/auth/verify' && request.method === 'POST') {
         const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''));
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
         if (!payload) return json({ success: false, error: 'Token inválido' }, cors, 401);
         return json({ success: true, data: payload }, cors);
+      }
+
+      // POST /api/auth/setup-hash — migra contraseña de texto plano a PBKDF2
+      // Úsalo UNA VEZ desde el panel de docente o con curl. Luego ya no es necesario.
+      if (path === '/api/auth/setup-hash' && request.method === 'POST') {
+        const auth = request.headers.get('Authorization') || '';
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
+        if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
+        const { password } = await request.json();
+        if (!password) return json({ success: false, error: 'Password requerido' }, cors, 400);
+        const hashed = await hashPassword(password);
+        await env.DB.prepare('UPDATE docentes SET password_hash = ? WHERE id = ?')
+          .bind(hashed, payload.id).run();
+        return json({ success: true, message: 'Contraseña migrada a hash seguro' }, cors);
       }
 
       // ============================================
@@ -101,7 +127,7 @@ export default {
       // ============================================
       if (path === '/api/upload' && request.method === 'POST') {
         const auth = request.headers.get('Authorization') || '';
-        const payload = await verifyJWT(auth.replace('Bearer ', ''));
+        const payload = await verifyJWT(auth.replace('Bearer ', ''), env.JWT_SECRET);
         if (!payload) return json({ success: false, error: 'No autorizado' }, cors, 401);
 
         const formData = await request.formData();
@@ -455,18 +481,86 @@ function json(data, cors, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: { ...cors, 'Content-Type': 'application/json' } });
 }
 
-const JWT_SECRET = 'kodami-secret-2026';
+// ============================================
+// JWT con HMAC-SHA256 real (crypto.subtle nativo)
+// ============================================
 
-async function createJWT(payload) {
-  const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  const body = btoa(JSON.stringify({ ...payload, exp: Math.floor(Date.now()/1000)+86400 })).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
-  return `${header}.${body}.sig`;
+function b64url(buf) {
+  return btoa(String.fromCharCode(...new Uint8Array(buf)))
+    .replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
 }
-async function verifyJWT(token) {
+
+async function getHMACKey(secret) {
+  const enc = new TextEncoder();
+  return crypto.subtle.importKey(
+    'raw', enc.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false, ['sign', 'verify']
+  );
+}
+
+async function createJWT(payload, secret) {
+  const s = secret || 'kodami-secret-2026';
+  const header = b64url(new TextEncoder().encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
+  const body   = b64url(new TextEncoder().encode(JSON.stringify({ ...payload, exp: Math.floor(Date.now()/1000) + 86400 })));
+  const key    = await getHMACKey(s);
+  const sig    = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(`${header}.${body}`));
+  return `${header}.${body}.${b64url(sig)}`;
+}
+
+async function verifyJWT(token, secret) {
   try {
-    const p = JSON.parse(atob(token.split('.')[1]));
+    const s = secret || 'kodami-secret-2026';
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [header, body, sig] = parts;
+
+    // Verificar firma HMAC
+    const key = await getHMACKey(s);
+    const sigBytes = Uint8Array.from(atob(sig.replace(/-/g,'+').replace(/_/g,'/')), c => c.charCodeAt(0));
+    const valid = await crypto.subtle.verify('HMAC', key, sigBytes, new TextEncoder().encode(`${header}.${body}`));
+    if (!valid) return null;
+
+    // Verificar expiración
+    const p = JSON.parse(atob(body.replace(/-/g,'+').replace(/_/g,'/')));
     return p.exp > Math.floor(Date.now()/1000) ? p : null;
   } catch { return null; }
+}
+
+// ============================================
+// PBKDF2 para contraseñas (crypto.subtle nativo)
+// ============================================
+
+async function hashPassword(password) {
+  const enc = new TextEncoder();
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const saltHex = Array.from(salt).map(b => b.toString(16).padStart(2, '0')).join('');
+
+  const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+    keyMaterial, 256
+  );
+  const hashHex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${saltHex}:${hashHex}`;
+}
+
+async function verifyPassword(password, stored) {
+  try {
+    const [saltHex, hashHex] = stored.split(':');
+    if (!saltHex || !hashHex) return false;
+
+    const salt = new Uint8Array(saltHex.match(/.{2}/g).map(b => parseInt(b, 16)));
+    const enc = new TextEncoder();
+
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' },
+      keyMaterial, 256
+    );
+    const candidateHex = Array.from(new Uint8Array(bits)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return candidateHex === hashHex;
+  } catch { return false; }
 }
 
 async function buscarChunks(env, query) {

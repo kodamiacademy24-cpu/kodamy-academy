@@ -18,3 +18,7 @@ database_id = "afd4664d-6e8f-4394-9d7d-ab4babac1c4b"
 
 [ai]
 binding = "AI"
+
+# JWT_SECRET debe configurarse como secret en Cloudflare:
+# wrangler secret put JWT_SECRET
+# Si no está configurado, el worker usa el fallback interno.
