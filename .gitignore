@@ -4,3 +4,7 @@ node_modules/
 .DS_Store
 pdfs-matematicas/
 scripts/test_pdf.cjs
+REPORTE.md
+SESION.md
+temp-skills/
+final.json
